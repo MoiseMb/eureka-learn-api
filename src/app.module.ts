@@ -10,13 +10,25 @@ import { UserModule } from './user/user.module';
 import { SubjectModule } from './subject/subject.module';
 import { SubmissionModule } from './submission/submission.module';
 import { CorrectionModule } from './correction/correction.module';
+import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
-  imports: [AuthModule, ClassroomModule, UserModule, SubjectModule, SubmissionModule, CorrectionModule],
+  imports: [
+    PrismaModule,
+    AuthModule,
+    ClassroomModule,
+    UserModule,
+    SubjectModule,
+    SubmissionModule,
+    CorrectionModule
+  ],
   controllers: [AppController],
-  providers: [AppService, {
-    provide: APP_GUARD,
-    useClass: AuthGuard,
-  },],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
+  ],
 })
 export class AppModule { }
