@@ -1,75 +1,48 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from 'src/lib/prisma.service';
 import { JwtService } from '@nestjs/jwt';
-import { Admin } from '@prisma/client';
+import { UserService } from 'src/user/services/user.service';
+import * as bcrypt from 'bcrypt';
+import { LoginDto, AuthResponseDto } from './dto/auth.dto';
+import { Role } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
-    constructor(private prisma: PrismaService, private jwtService: JwtService) { }
+    constructor(
+        private prisma: PrismaService,
+        private jwtService: JwtService,
+        private userService: UserService
+    ) { }
 
-    // async signIn(username: string, password: string): Promise<{ access_token: string }> {
-    //     const admin = await this.prisma.amdin.findUnique({ where: { username: username } });
+    async login(loginDto: LoginDto): Promise<AuthResponseDto> {
+        const user = await this.userService.findByEmail(loginDto.email);
 
-    //     if (amdin) {
-    //         if (doctor.password !== password) {
-    //             throw new UnauthorizedException();
-    //         }
-    //         const payload = { id: doctor.id, role: doctor.role, fullName: `${doctor.firstname} ${doctor.lastname}` };
-    //         return {
-    //             access_token: await this.jwtService.signAsync(payload),
-    //         };
-    //     }
-
-    //     const medicalAssistant = await this.prisma.medicalAssistant.findFirst({ where: { username } });
-
-    //     if (medicalAssistant) {
-    //         if (medicalAssistant.password !== password) {
-    //             throw new UnauthorizedException();
-    //         }
-    //         const payload = { id: medicalAssistant.id, role: medicalAssistant.role, fullName: `${medicalAssistant.firstname} ${medicalAssistant.lastname}` };
-    //         return {
-    //             access_token: await this.jwtService.signAsync(payload),
-    //         };
-    //     }
-
-    //     const admin = await this.prisma.admin.findFirst({ where: { username } });
-
-    //     if (admin) {
-    //         if (admin.password !== password) {
-    //             throw new UnauthorizedException();
-    //         }
-    //         const payload = { id: admin.id, role: admin.role, fullName: `${admin.firstname} ${admin.lastname}` };
-    //         return {
-    //             access_token: await this.jwtService.signAsync(payload),
-    //         };
-    //     }
-
-    //     return null;
-    // }
-    async adminLogin(username: string, password: string): Promise<{ access_token: string }> {
-        const admin = await this.prisma.admin.findUnique({ where: { username: username } });
-
-        if (admin) {
-            if (admin.password !== password) {
-                throw new UnauthorizedException();
-            }
-            const payload = { id: admin.id, fullName: `${admin.firstName} ${admin.lastName}` };
-            return {
-                access_token: await this.jwtService.signAsync(payload),
-            };
+        if (!user) {
+            throw new UnauthorizedException('Invalid credentials');
         }
 
-        return null;
-    }
+        const isPasswordValid = await bcrypt.compare(loginDto.password, user.password);
 
-    googleLogin(req) {
-        if (!req.user) {
-            return 'No user from google'
+        if (!isPasswordValid) {
+            throw new UnauthorizedException('Invalid credentials');
         }
+
+        const payload = {
+            id: user.id,
+            email: user.email,
+            role: user.role
+        };
 
         return {
-            message: 'User information from google',
-            user: req.user
-        }
+            access_token: await this.jwtService.signAsync(payload),
+            user: {
+                id: user.id,
+                email: user.email,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                role: user.role
+            }
+        };
     }
+
 }
