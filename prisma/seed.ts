@@ -15,6 +15,28 @@ async function main() {
                 lastName: 'MBENGUE',
                 password: hashedPassword,
                 role: Role.ADMIN,
+
+            },
+        });
+        const hashedPassw = await hash('passer', 12);
+        const megaAdmin = await prisma.user.upsert({
+            where: { email: 'manager@manager.com' },
+            update: {},
+            create: {
+                email: 'manager@manager.com',
+                firstName: ' Dioulde Amina',
+                lastName: 'DATH',
+                password: hashedPassw,
+                role: Role.ADMIN,
+                
+            },
+        });
+
+        const DIC2 = await prisma.classroom.create({
+            data: {
+                name: ' DIC2',
+                description: 'deuxieme annee cycle ingenieur',
+                
             },
         });
 
