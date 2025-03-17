@@ -3,7 +3,9 @@ import { ClassroomService } from '../services/classroom.service';
 import { CreateClassroomDto } from '../dto/create-classroom.dto';
 import { Role } from '@prisma/client';
 import { Roles } from 'src/auth/roles.decorator';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('classroom')
 @Controller('classroom')
 export class ClassroomController {
     constructor(private readonly classroomService: ClassroomService) { }

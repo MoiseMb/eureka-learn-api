@@ -3,7 +3,9 @@ import { SubjectService } from '../services/subject.service';
 import { CreateSubjectDto } from '../dto/create-subject.dto';
 import { Role } from '@prisma/client';
 import { Roles } from 'src/auth/roles.decorator';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('subject')
 @Controller('subject')
 export class SubjectController {
     constructor(private readonly subjectService: SubjectService) { }

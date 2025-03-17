@@ -3,7 +3,9 @@ import { CorrectionService } from '../services/correction.service';
 import { CreateCorrectionDto } from '../dto/create-correction.dto';
 import { Role } from '@prisma/client';
 import { Roles } from 'src/auth/roles.decorator';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('correction')
 @Controller('correction')
 export class CorrectionController {
     constructor(private readonly correctionService: CorrectionService) { }

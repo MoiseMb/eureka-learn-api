@@ -13,7 +13,9 @@ import { Response } from 'express';
 import { Public } from './constants';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthResponseDto, LoginDto } from './dto/auth.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('user')
 @Controller('auth')
 export class AuthController {
     constructor(private authService: AuthService) { }
