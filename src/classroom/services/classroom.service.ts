@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/lib/prisma.service';
 import { CreateClassroomDto } from '../dto/create-classroom.dto';
-import { ListArgs } from 'src/lib/listArg';
+
+import { Classroom } from '@prisma/client';
+import { PaginatedResult } from 'src/common/types/pagination.type';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class ClassroomService {
@@ -11,15 +14,37 @@ export class ClassroomService {
         return this.prisma.classroom.create({ data });
     }
 
-    async findAll(args: ListArgs = {}) {
-        const { skip, take } = args;
-        return this.prisma.classroom.findMany({
-            skip,
-            take,
-            include: {
-                students: true
+    async findAll(paginationDto: PaginationDto): Promise<PaginatedResult<Classroom>> {
+        const { page = 1, limit = 10, search, orderBy, order } = paginationDto;
+
+        const where = search ? {
+            OR: [
+                { name: { contains: search } },
+                { description: { contains: search } }
+            ]
+        } : {};
+
+        const [total, classrooms] = await Promise.all([
+            this.prisma.classroom.count({ where }),
+            this.prisma.classroom.findMany({
+                where,
+                skip: (page - 1) * limit,
+                take: +limit,
+                orderBy: orderBy ? { [orderBy]: order } : { createdAt: 'desc' },
+                include: { students: true }
+            })
+        ]);
+
+        const lastPage = Math.ceil(total / limit);
+
+        return {
+            data: classrooms,
+            meta: {
+                total,
+                page,
+                lastPage
             }
-        });
+        };
     }
 
     async findOne(id: number) {

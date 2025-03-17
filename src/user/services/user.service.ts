@@ -5,7 +5,8 @@ import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { UserResponseDto } from '../dto/user-response.dto';
-
+import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { PaginatedResult } from 'src/common/types/pagination.type';
 @Injectable()
 export class UserService {
     constructor(private prisma: PrismaService) { }
@@ -54,9 +55,38 @@ export class UserService {
         return this.toResponseDto(user);
     }
 
-    async findAll(): Promise<UserResponseDto[]> {
-        const users = await this.prisma.user.findMany();
-        return users.map(user => this.toResponseDto(user));
+    async findAll(paginationDto: PaginationDto): Promise<PaginatedResult<UserResponseDto>> {
+        const { page = 1, limit = 10, search, orderBy, order } = paginationDto;
+
+        const where = search ? {
+            OR: [
+                { firstName: { contains: search } },
+                { lastName: { contains: search } },
+                { email: { contains: search } }
+            ]
+        } : {};
+
+        const [total, users] = await Promise.all([
+            this.prisma.user.count({ where }),
+            this.prisma.user.findMany({
+                where,
+                skip: (page - 1) * limit,
+                take: limit,
+                orderBy: orderBy ? { [orderBy]: order } : { createdAt: 'desc' },
+                include: { classroom: true }
+            })
+        ]);
+
+        const lastPage = Math.ceil(total / limit);
+
+        return {
+            data: users.map(user => this.toResponseDto(user)),
+            meta: {
+                total,
+                page,
+                lastPage
+            }
+        };
     }
 
     async update(id: number, updateUserDto: UpdateUserDto): Promise<UserResponseDto> {

@@ -1,10 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, Query } from '@nestjs/common';
 import { UserService } from '../services/user.service';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { Role } from '@prisma/client';
 import { Roles } from 'src/auth/roles.decorator';
 import { Public } from 'src/auth/constants';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Controller('user')
 export class UserController {
@@ -23,8 +24,8 @@ export class UserController {
 
     @Get()
     @Roles(Role.ADMIN)
-    findAll() {
-        return this.userService.findAll();
+    findAll(@Query() paginationDto: PaginationDto) {
+        return this.userService.findAll(paginationDto);
     }
 
     @Get(':id')

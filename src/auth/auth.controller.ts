@@ -5,13 +5,10 @@ import {
     HttpCode,
     HttpStatus,
     Post,
-    Req,
     Request,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { Response } from 'express';
 import { Public } from './constants';
-import { AuthGuard } from '@nestjs/passport';
 import { AuthResponseDto, LoginDto } from './dto/auth.dto';
 
 @Controller('auth')

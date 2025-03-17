@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, Request } from '@nestjs/common';
 import { SubjectService } from '../services/subject.service';
 import { CreateSubjectDto } from '../dto/create-subject.dto';
 import { Role } from '@prisma/client';
 import { Roles } from 'src/auth/roles.decorator';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Controller('subject')
 export class SubjectController {
@@ -15,8 +16,8 @@ export class SubjectController {
     }
 
     @Get()
-    findAll() {
-        return this.subjectService.findAll();
+    findAll(@Query() paginationDto: PaginationDto) {
+        return this.subjectService.findAll(paginationDto);
     }
 
     @Get('my-subjects')

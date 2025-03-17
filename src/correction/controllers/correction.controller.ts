@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, Request } from '@nestjs/common';
 import { CorrectionService } from '../services/correction.service';
 import { CreateCorrectionDto } from '../dto/create-correction.dto';
 import { Role } from '@prisma/client';
 import { Roles } from 'src/auth/roles.decorator';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Controller('correction')
 export class CorrectionController {
@@ -15,8 +16,8 @@ export class CorrectionController {
     }
 
     @Get()
-    findAll() {
-        return this.correctionService.findAll();
+    findAll(@Query() paginationDto: PaginationDto) {
+        return this.correctionService.findAll(paginationDto);
     }
 
     @Get(':id')

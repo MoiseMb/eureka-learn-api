@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, Request } from '@nestjs/common';
 import { SubmissionService } from '../services/submission.service';
 import { CreateSubmissionDto } from '../dto/create-submission.dto';
 import { Role } from '@prisma/client';
 import { Roles } from 'src/auth/roles.decorator';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Controller('submission')
 export class SubmissionController {
@@ -16,18 +17,18 @@ export class SubmissionController {
 
     @Get()
     @Roles(Role.PROFESSOR, Role.ADMIN)
-    findAll() {
-        return this.submissionService.findAll();
-    }
-
-    @Get(':id')
-    findOne(@Param('id') id: string) {
-        return this.submissionService.findOne(+id);
+    findAll(@Query() paginationDto: PaginationDto) {
+        return this.submissionService.findAll(paginationDto);
     }
 
     @Get('my-submissions')
     @Roles(Role.STUDENT)
     findMySubmissions(@Request() req) {
         return this.submissionService.findMySubmissions(req.user.id);
+    }
+
+    @Get(':id')
+    findOne(@Param('id') id: string) {
+        return this.submissionService.findOne(+id);
     }
 }

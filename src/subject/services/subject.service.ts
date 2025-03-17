@@ -1,8 +1,10 @@
 import { Injectable, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from 'src/lib/prisma.service';
 import { CreateSubjectDto } from '../dto/create-subject.dto';
-import { ListArgs } from 'src/lib/listArg';
-import { Role } from '@prisma/client';
+import { Role, Subject } from '@prisma/client';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { PaginatedResult } from 'src/common/types/pagination.type';
+
 
 @Injectable()
 export class SubjectService {
@@ -28,16 +30,45 @@ export class SubjectService {
         });
     }
 
-    async findAll(args: ListArgs = {}) {
-        const { skip, take } = args;
-        return this.prisma.subject.findMany({
-            skip,
-            take,
-            include: {
-                teacher: true,
-                submissions: true
+    async findAll(paginationDto: PaginationDto): Promise<PaginatedResult<Subject>> {
+        const { page = 1, limit = 10, search, orderBy, order } = paginationDto;
+
+        const where = search ? {
+            OR: [
+                { title: { contains: search } },
+                { description: { contains: search } }
+            ]
+        } : {};
+
+        const [total, subjects] = await Promise.all([
+            this.prisma.subject.count({ where }),
+            this.prisma.subject.findMany({
+                where,
+                skip: (page - 1) * limit,
+                take: limit,
+                orderBy: orderBy ? { [orderBy]: order } : { createdAt: 'desc' },
+                include: {
+                    teacher: true,
+                    submissions: {
+                        include: {
+                            student: true,
+                            correction: true
+                        }
+                    }
+                }
+            })
+        ]);
+
+        const lastPage = Math.ceil(total / limit);
+
+        return {
+            data: subjects,
+            meta: {
+                total,
+                page,
+                lastPage
             }
-        });
+        };
     }
 
     async findOne(id: number) {

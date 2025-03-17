@@ -1,12 +1,14 @@
-import { Controller, Get, Post, Body, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
 import { ClassroomService } from '../services/classroom.service';
 import { CreateClassroomDto } from '../dto/create-classroom.dto';
 import { Role } from '@prisma/client';
 import { Roles } from 'src/auth/roles.decorator';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Controller('classroom')
 export class ClassroomController {
     constructor(private readonly classroomService: ClassroomService) { }
+
 
     @Post()
     @Roles(Role.ADMIN, Role.PROFESSOR)
@@ -15,8 +17,8 @@ export class ClassroomController {
     }
 
     @Get()
-    findAll() {
-        return this.classroomService.findAll();
+    findAll(@Query() paginationDto: PaginationDto) {
+        return this.classroomService.findAll(paginationDto);
     }
 
     @Get(':id')

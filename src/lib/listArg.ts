@@ -1,6 +1,7 @@
 export type ListArgs = {
-  field?: string;
-  order?: string;
   skip?: number;
   take?: number;
-};
+  search?: string;
+  orderBy?: string;
+  order?: 'asc' | 'desc';
+}
