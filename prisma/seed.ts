@@ -21,7 +21,6 @@ async function main() {
         console.log('Super Admin créé:', superAdmin);
 
 
-
     } catch (error) {
         console.error('Erreur lors du seeding:', error);
         process.exit(1);

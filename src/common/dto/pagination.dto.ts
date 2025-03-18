@@ -1,5 +1,6 @@
 import { IsOptional, IsInt, Min, Max } from 'class-validator';
 import { Type } from 'class-transformer';
+import { Role } from '@prisma/client';
 
 export class PaginationDto {
     @IsOptional()
@@ -23,4 +24,7 @@ export class PaginationDto {
 
     @IsOptional()
     order?: 'asc' | 'desc' = 'desc';
+
+    @IsOptional()
+    role?: Role = 'STUDENT';
 } 

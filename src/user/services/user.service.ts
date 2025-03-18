@@ -25,7 +25,7 @@ export class UserService {
             throw new ConflictException('Email already exists');
         }
 
-        const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+        const hashedPassword = await bcrypt.hash(createUserDto.password, 12);
 
         const user = await this.prisma.user.create({
             data: {
@@ -56,7 +56,8 @@ export class UserService {
     }
 
     async findAll(paginationDto: PaginationDto): Promise<PaginatedResult<UserResponseDto>> {
-        const { page = 1, limit = 10, search, orderBy, order } = paginationDto;
+        const { page = 1, limit = 10, search, orderBy, order, role } = paginationDto;
+
 
         const where = search ? {
             OR: [
@@ -64,14 +65,17 @@ export class UserService {
                 { lastName: { contains: search } },
                 { email: { contains: search } }
             ]
-        } : {};
+        } : { role }
+
+
+
 
         const [total, users] = await Promise.all([
             this.prisma.user.count({ where }),
             this.prisma.user.findMany({
                 where,
                 skip: (page - 1) * limit,
-                take: limit,
+                take: +limit,
                 orderBy: orderBy ? { [orderBy]: order } : { createdAt: 'desc' },
                 include: { classroom: true }
             })
