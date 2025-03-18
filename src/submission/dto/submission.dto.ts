@@ -2,11 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Submission, User, Subject, Correction } from '@prisma/client';
 
 export class SubmissionDto implements Submission {
-    @ApiProperty({
-        type: Number,
-        description: 'classroom id',
-          })
-    id: number;
+
     @ApiProperty({
         type: String,
         description: 'fichier ',
