@@ -17,18 +17,24 @@ export class CorrectionService {
             throw new ForbiddenException('Only professors can create corrections');
         }
 
-        // Vérifier si le sujet appartient au professeur
         const submission = await this.prisma.submission.findUnique({
             where: { id: data.submissionId },
             include: { subject: true }
         });
+
+        if (!submission) {
+            throw new ForbiddenException('Submission not found');
+        }
 
         if (submission.subject.teacherId !== professorId) {
             throw new ForbiddenException('You can only correct submissions for your subjects');
         }
 
         return this.prisma.correction.create({
-            data,
+            data: {
+                ...data,
+                evaluationType: submission.subject.evaluationType
+            },
             include: {
                 submission: {
                     include: {

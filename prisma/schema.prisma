@@ -30,18 +30,37 @@ model User {
   teaching    Classroom[]  @relation("ClassroomTeacher")
 }
 
+enum EvaluationType {
+  POO_JAVA
+  C_LANGUAGE
+  SQL
+  PYTHON
+  ALGORITHMS
+  DATA_STRUCTURES
+}
+
+enum SubjectType {
+  PDF
+  TEXT
+  MARKDOWN
+}
+
 model Subject {
-  id          Int          @id @default(autoincrement())
-  title       String
-  description String?
-  fileUrl     String
-  startDate   DateTime
-  endDate     DateTime
-  teacher     User         @relation("UserSubjects", fields: [teacherId], references: [id])
-  teacherId   Int
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  submissions Submission[]
+  id             Int            @id @default(autoincrement())
+  title          String
+  description    String?
+  fileUrl        String
+  startDate      DateTime
+  endDate        DateTime
+  evaluationType EvaluationType
+  type           SubjectType    @default(PDF)
+  teacher        User           @relation("UserSubjects", fields: [teacherId], references: [id])
+  teacherId      Int
+  classroom      Classroom      @relation(fields: [classroomId], references: [id])
+  classroomId    Int
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  submissions    Submission[]
 }
 
 model Submission {
@@ -57,21 +76,23 @@ model Submission {
 }
 
 model Correction {
-  id           Int        @id @default(autoincrement())
-  score        Float?
-  correctedAt  DateTime   @default(now())
-  notes        String?
-  submission   Submission @relation(fields: [submissionId], references: [id])
-  submissionId Int        @unique
+  id             Int            @id @default(autoincrement())
+  score          Float?
+  correctedAt    DateTime       @default(now())
+  notes          String?
+  evaluationType EvaluationType
+  submission     Submission     @relation(fields: [submissionId], references: [id])
+  submissionId   Int            @unique
 }
 
 model Classroom {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   name        String
   description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  students    User[]   @relation("ClassroomStudents")
-  teacher     User?    @relation("ClassroomTeacher", fields: [teacherId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  students    User[]    @relation("ClassroomStudents")
+  teacher     User?     @relation("ClassroomTeacher", fields: [teacherId], references: [id])
   teacherId   Int?
+  Subject     Subject[]
 }

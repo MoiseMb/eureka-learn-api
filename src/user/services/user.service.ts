@@ -1,6 +1,6 @@
 import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { Role, User } from '@prisma/client';
+import { User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
@@ -77,7 +77,7 @@ export class UserService {
                 skip: (page - 1) * limit,
                 take: +limit,
                 orderBy: orderBy ? { [orderBy]: order } : { createdAt: 'desc' },
-                include: { classroom: true }
+                include: { classroom: true, teaching: true }
             })
         ]);
 
