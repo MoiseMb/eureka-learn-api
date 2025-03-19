@@ -1,12 +1,11 @@
 import { Injectable, ForbiddenException, BadRequestException, NotFoundException, InternalServerErrorException } from '@nestjs/common';
-import { PrismaService } from 'src/lib/prisma.service';
 import { CreateSubjectDto } from '../dto/create-subject.dto';
 import { UploadService } from 'src/upload/upload.service';
-import { ListArgs } from 'src/lib/listArg';
 import { Role, Subject } from '@prisma/client';
 import { Multer } from 'multer';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { PaginatedResult } from 'src/common/types/pagination.type';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class SubjectService {

@@ -5,8 +5,8 @@ import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { UserResponseDto } from '../dto/user-response.dto';
-import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { PaginatedResult } from 'src/common/types/pagination.type';
+import { PaginationDto } from '../../common/dto/pagination.dto';
+import { PaginatedResult } from '../../common/types/pagination.type';
 @Injectable()
 export class UserService {
     constructor(private prisma: PrismaService) { }

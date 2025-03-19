@@ -1,10 +1,10 @@
 import { Injectable, ForbiddenException } from '@nestjs/common';
-import { PrismaService } from 'src/lib/prisma.service';
 import { CreateCorrectionDto } from '../dto/create-correction.dto';
 import { ListArgs } from 'src/lib/listArg';
 import { Correction, Role } from '@prisma/client';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { PaginatedResult } from 'src/common/types/pagination.type';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class CorrectionService {

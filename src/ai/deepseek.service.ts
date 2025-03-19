@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { Subject, Submission } from '@prisma/client';
 import { OnEvent } from '@nestjs/event-emitter';
-import { PrismaService } from 'src/lib/prisma.service';
 import { SubmissionCreatedEvent } from '../submission/events/submission-created.event';
 import axios from 'axios';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class DeepseekService {

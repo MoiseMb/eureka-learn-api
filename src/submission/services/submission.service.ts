@@ -2,13 +2,13 @@ import { Injectable, ForbiddenException, InternalServerErrorException } from '@n
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { PaginatedResult } from 'src/common/types/pagination.type';
 import { Submission } from '@prisma/client';
-import { PrismaService } from 'src/lib/prisma.service';
 import { CreateSubmissionDto } from '../dto/create-submission.dto';
 import { Role } from '@prisma/client';
 import { UploadService } from 'src/upload/upload.service';
 import { Multer } from 'multer';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { SubmissionCreatedEvent } from '../events/submission-created.event';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class SubmissionService {
