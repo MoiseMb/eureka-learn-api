@@ -12,6 +12,7 @@ import { SubmissionModule } from './submission/submission.module';
 import { CorrectionModule } from './correction/correction.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { AnalyticsModule } from './analytics/analytics.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     SubjectModule,
     SubmissionModule,
     CorrectionModule,
+    AnalyticsModule,
     EventEmitterModule.forRoot(),
   ],
   controllers: [AppController],

@@ -3,8 +3,8 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { SubmissionService } from '../services/submission.service';
 import { CreateSubmissionDto } from '../dto/create-submission.dto';
 import { Role } from '@prisma/client';
-import { Roles } from 'src/auth/roles.decorator';
-import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { Roles } from '../../auth/roles.decorator'; // Updated path
+import { PaginationDto } from '../../common/dto/pagination.dto'; // Updated path
 import { Multer } from 'multer';
 
 @Controller('submission')

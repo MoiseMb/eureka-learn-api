@@ -8,6 +8,11 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+// datasource db {
+//   provider = "mysql"
+//   url      = env("DATABASE_URL")
+// }
+
 enum Role {
   PROFESSOR
   STUDENT
@@ -46,33 +51,36 @@ enum SubjectType {
 }
 
 model Subject {
-  id             Int            @id @default(autoincrement())
-  title          String
-  description    String?
-  fileUrl        String
-  startDate      DateTime
-  endDate        DateTime
-  evaluationType EvaluationType
-  type           SubjectType    @default(PDF)
-  teacher        User           @relation("UserSubjects", fields: [teacherId], references: [id])
-  teacherId      Int
-  classroom      Classroom      @relation(fields: [classroomId], references: [id])
-  classroomId    Int
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  submissions    Submission[]
+  id                Int            @id @default(autoincrement())
+  title             String
+  description       String?
+  fileUrl           String
+  correctionFileUrl String?
+  startDate         DateTime
+  endDate           DateTime
+  evaluationType    EvaluationType
+  type              SubjectType    @default(PDF)
+  teacher           User           @relation("UserSubjects", fields: [teacherId], references: [id])
+  teacherId         Int
+  classroom         Classroom      @relation(fields: [classroomId], references: [id])
+  classroomId       Int
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  submissions       Submission[]
 }
 
 model Submission {
-  id          Int         @id @default(autoincrement())
-  fileUrl     String
-  submittedAt DateTime    @default(now())
-  student     User        @relation(fields: [studentId], references: [id])
-  studentId   Int
-  type        SubjectType @default(PDF)
-  subject     Subject     @relation(fields: [subjectId], references: [id])
-  subjectId   Int
-  correction  Correction?
+  id           Int         @id @default(autoincrement())
+  fileUrl      String
+  submittedAt  DateTime    @default(now())
+  isCorrecting Boolean     @default(false)
+  isCorrected  Boolean     @default(false)
+  student      User        @relation(fields: [studentId], references: [id])
+  studentId    Int
+  type         SubjectType @default(PDF)
+  subject      Subject     @relation(fields: [subjectId], references: [id])
+  subjectId    Int
+  correction   Correction?
 }
 
 model Correction {

@@ -10,4 +10,6 @@ export class SubmissionDto implements Submission {
     subject?: Subject;
     correction?: Correction;
     type: $Enums.SubjectType;
+    isCorrecting: boolean;
+    isCorrected: boolean;
 } 

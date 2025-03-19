@@ -10,20 +10,44 @@ export class DeepseekService {
     private readonly OLLAMA_API = 'http://localhost:11434/api/generate';
     private readonly MODEL = 'deepseekr1:14b';
 
-    constructor(private prisma: PrismaService) {}
+    constructor(private prisma: PrismaService) { }
 
     @OnEvent('submission.created')
     async handleSubmissionCreated(event: SubmissionCreatedEvent) {
-        const evaluation = await this.evaluateSubmission(event.submission, event.subject);
-        
-        await this.prisma.correction.create({
-            data: {
-                submissionId: event.submission.id,
-                score: evaluation.score,
-                notes: evaluation.notes,
-                evaluationType: event.subject.evaluationType
-            }
-        });
+        try {
+            // Set submission to correcting state
+            await this.prisma.submission.update({
+                where: { id: event.submission.id },
+                data: { isCorrecting: true }
+            });
+
+            // const evaluation = await this.evaluateSubmission(event.submission, event.subject);
+
+            // // Create correction and update submission status
+            // await this.prisma.$transaction([
+            //     this.prisma.correction.create({
+            //         data: {
+            //             submissionId: event.submission.id,
+            //             score: evaluation.score,
+            //             notes: evaluation.notes,
+            //             evaluationType: event.subject.evaluationType
+            //         }
+            //     }),
+            //     this.prisma.submission.update({
+            //         where: { id: event.submission.id },
+            //         data: {
+            //             isCorrecting: false,
+            //             isCorrected: true
+            //         }
+            //     })
+            // ]);
+        } catch (error) {
+            await this.prisma.submission.update({
+                where: { id: event.submission.id },
+                data: { isCorrecting: false }
+            });
+            console.error('Evaluation failed:', error);
+        }
     }
 
     private async evaluateSubmission(submission: Submission, subject: Subject): Promise<{
@@ -31,7 +55,6 @@ export class DeepseekService {
         notes: string;
     }> {
         try {
-            // Get submission content
             const fileResponse = await axios.get(submission.fileUrl);
             const submissionContent = fileResponse.data;
 
@@ -70,13 +93,12 @@ export class DeepseekService {
             });
 
             const aiResponse = response.data.response;
-            
-            // Parse AI response to extract score and notes
+
             const scoreMatch = aiResponse.match(/Score:\s*(\d+)/);
             const score = scoreMatch ? parseInt(scoreMatch[1]) : 10;
 
             return {
-                score: Math.min(Math.max(score, 0), 20), // Ensure score is between 0 and 20
+                score: Math.min(Math.max(score, 0), 20),
                 notes: aiResponse
             };
 

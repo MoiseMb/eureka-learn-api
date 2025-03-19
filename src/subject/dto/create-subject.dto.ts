@@ -14,6 +14,10 @@ export class CreateSubjectDto {
     fileUrl: string;
 
     @IsNotEmpty()
+    @IsString()
+    correctionFileUrl: string;
+
+    @IsNotEmpty()
     @IsDate()
     startDate: Date;
 

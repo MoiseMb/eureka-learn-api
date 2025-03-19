@@ -2,7 +2,9 @@ import { Injectable, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from 'src/lib/prisma.service';
 import { CreateCorrectionDto } from '../dto/create-correction.dto';
 import { ListArgs } from 'src/lib/listArg';
-import { Role } from '@prisma/client';
+import { Correction, Role } from '@prisma/client';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { PaginatedResult } from 'src/common/types/pagination.type';
 
 @Injectable()
 export class CorrectionService {
@@ -74,5 +76,45 @@ export class CorrectionService {
                 }
             }
         });
+    }
+
+    async findUserCorrections(userId: number, paginationDto: PaginationDto): Promise<PaginatedResult<Correction>> {
+        const { page = 1, limit = 10, orderBy, order } = paginationDto;
+
+        const where = {
+            submission: {
+                studentId: userId,
+                isCorrected: true
+            }
+        };
+
+        const [total, corrections] = await Promise.all([
+            this.prisma.correction.count({ where }),
+            this.prisma.correction.findMany({
+                where,
+                skip: (page - 1) * limit,
+                take: +limit,
+                orderBy: orderBy ? { [orderBy]: order } : { correctedAt: 'desc' },
+                include: {
+                    submission: {
+                        include: {
+                            subject: true,
+                            student: true
+                        }
+                    }
+                }
+            })
+        ]);
+
+        const lastPage = Math.ceil(total / limit);
+
+        return {
+            data: corrections,
+            meta: {
+                total,
+                page,
+                lastPage
+            }
+        };
     }
 }

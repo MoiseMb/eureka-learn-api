@@ -2,8 +2,8 @@ import { Controller, Get, Post, Body, Param, Query, Put, Delete, Request } from 
 import { ClassroomService } from '../services/classroom.service';
 import { CreateClassroomDto } from '../dto/create-classroom.dto';
 import { Role } from '@prisma/client';
-import { Roles } from 'src/auth/roles.decorator';
-import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { Roles } from '../../auth/roles.decorator'; // Updated path
+import { PaginationDto } from '../../common/dto/pagination.dto'; // Updated path
 import { UpdateClassroomDto } from '../dto/update-classroom.dto';
 
 @Controller('classroom')

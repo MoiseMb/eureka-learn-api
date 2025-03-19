@@ -2,8 +2,8 @@ import { Controller, Get, Post, Body, Param, Query, Request } from '@nestjs/comm
 import { CorrectionService } from '../services/correction.service';
 import { CreateCorrectionDto } from '../dto/create-correction.dto';
 import { Role } from '@prisma/client';
-import { Roles } from 'src/auth/roles.decorator';
-import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { Roles } from '../../auth/roles.decorator'; // Updated path
+import { PaginationDto } from '../../common/dto/pagination.dto'; // Updated path
 
 @Controller('correction')
 export class CorrectionController {
@@ -14,7 +14,11 @@ export class CorrectionController {
     create(@Body() createCorrectionDto: CreateCorrectionDto, @Request() req) {
         return this.correctionService.create(createCorrectionDto, req.user.id);
     }
-
+    @Get('my-corrections')
+    @Roles(Role.STUDENT)
+    findMyCorrections(@Query() paginationDto: PaginationDto, @Request() req) {
+        return this.correctionService.findUserCorrections(req.user.id, paginationDto);
+    }
     @Get()
     findAll(@Query() paginationDto: PaginationDto) {
         return this.correctionService.findAll(paginationDto);
@@ -24,4 +28,6 @@ export class CorrectionController {
     findOne(@Param('id') id: string) {
         return this.correctionService.findOne(+id);
     }
+
+
 }
