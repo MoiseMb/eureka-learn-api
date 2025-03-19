@@ -1,9 +1,11 @@
-import { Controller, Get, Post, Body, Param, Query, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, Request, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { SubmissionService } from '../services/submission.service';
 import { CreateSubmissionDto } from '../dto/create-submission.dto';
 import { Role } from '@prisma/client';
 import { Roles } from 'src/auth/roles.decorator';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { Multer } from 'multer';
 
 @Controller('submission')
 export class SubmissionController {
@@ -11,8 +13,13 @@ export class SubmissionController {
 
     @Post()
     @Roles(Role.STUDENT)
-    create(@Body() createSubmissionDto: CreateSubmissionDto, @Request() req) {
-        return this.submissionService.create(createSubmissionDto, req.user.id);
+    @UseInterceptors(FileInterceptor('file'))
+    create(
+        @Body() createSubmissionDto: CreateSubmissionDto,
+        @UploadedFile() file: Multer.File,
+        @Request() req
+    ) {
+        return this.submissionService.create(createSubmissionDto, file, req.user.id);
     }
 
     @Get()

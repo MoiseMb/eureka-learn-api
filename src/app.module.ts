@@ -11,6 +11,7 @@ import { SubjectModule } from './subject/subject.module';
 import { SubmissionModule } from './submission/submission.module';
 import { CorrectionModule } from './correction/correction.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
   imports: [
@@ -20,7 +21,8 @@ import { PrismaModule } from './prisma/prisma.module';
     UserModule,
     SubjectModule,
     SubmissionModule,
-    CorrectionModule
+    CorrectionModule,
+    EventEmitterModule.forRoot(),
   ],
   controllers: [AppController],
   providers: [

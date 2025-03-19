@@ -3,9 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
-  // directUrl = env("DIRECT_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 enum Role {
@@ -67,9 +67,9 @@ model Submission {
   id          Int         @id @default(autoincrement())
   fileUrl     String
   submittedAt DateTime    @default(now())
-  // Relations
   student     User        @relation(fields: [studentId], references: [id])
   studentId   Int
+  type        SubjectType @default(PDF)
   subject     Subject     @relation(fields: [subjectId], references: [id])
   subjectId   Int
   correction  Correction?

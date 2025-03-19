@@ -31,7 +31,7 @@ export class SubjectService {
                 data: {
                     ...data,
                     classroomId: Number(data.classroomId),
-                    fileUrl: uploadResult.secure_url,
+                    fileUrl: uploadResult.url,
                     teacherId: userId
                 },
                 include: {
@@ -43,11 +43,10 @@ export class SubjectService {
             return subject;
 
         } catch (error) {
-            if (error.secure_url) {
-                await this.uploadService.deleteImage(error.secure_url);
+            if (error.url) {
+                await this.uploadService.deleteImage(error.url);
             }
 
-            // More specific error handling
             if (error.message.includes('Invalid value provided')) {
                 throw new BadRequestException('Invalid classroom ID provided');
             }

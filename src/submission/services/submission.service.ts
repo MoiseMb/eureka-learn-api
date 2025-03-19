@@ -1,14 +1,24 @@
-import { Injectable, ForbiddenException } from '@nestjs/common';
+import { Injectable, ForbiddenException, InternalServerErrorException } from '@nestjs/common';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { PaginatedResult } from 'src/common/types/pagination.type';
+import { Submission } from '@prisma/client';
 import { PrismaService } from 'src/lib/prisma.service';
 import { CreateSubmissionDto } from '../dto/create-submission.dto';
-import { ListArgs } from 'src/lib/listArg';
 import { Role } from '@prisma/client';
+import { UploadService } from 'src/upload/upload.service';
+import { Multer } from 'multer';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { SubmissionCreatedEvent } from '../events/submission-created.event';
 
 @Injectable()
 export class SubmissionService {
-    constructor(private prisma: PrismaService) { }
+    constructor(
+        private prisma: PrismaService,
+        private uploadService: UploadService,
+        private eventEmitter: EventEmitter2
+    ) { }
 
-    async create(data: CreateSubmissionDto, studentId: number) {
+    async create(data: CreateSubmissionDto, file: Multer.File, studentId: number) {
         const user = await this.prisma.user.findUnique({
             where: { id: studentId }
         });
@@ -17,29 +27,77 @@ export class SubmissionService {
             throw new ForbiddenException('Only students can submit assignments');
         }
 
-        return this.prisma.submission.create({
-            data: {
-                ...data,
-                studentId
-            },
-            include: {
-                student: true,
-                subject: true
+        try {
+            const uploadResult = await this.uploadService.uploadImage(file, 'submissions');
+            const subject = await this.prisma.subject.findUnique({
+                where: { id: Number(data.subjectId) }
+            });
+
+            const submission = await this.prisma.submission.create({
+                data: {
+                    fileUrl: uploadResult.url,
+                    subjectId: Number(data.subjectId),
+                    studentId
+                },
+                include: {
+                    student: true,
+                    subject: true
+                }
+            });
+
+            this.eventEmitter.emit('submission.created', new SubmissionCreatedEvent(submission, subject));
+
+            return submission;
+        } catch (error) {
+            if (error.url) {
+                await this.uploadService.deleteImage(error.url);
             }
-        });
+            throw new InternalServerErrorException('Failed to create submission: ' + error.message);
+        }
     }
 
-    async findAll(args: ListArgs = {}) {
-        const { skip, take } = args;
-        return this.prisma.submission.findMany({
-            skip,
-            take,
-            include: {
-                student: true,
-                subject: true,
-                correction: true
+    async findAll(paginationDto: PaginationDto): Promise<PaginatedResult<Submission>> {
+        const { page = 1, limit = 10, search, orderBy, order } = paginationDto;
+
+        const where = search ? {
+            OR: [
+                { subject: { title: { contains: search } } },
+                {
+                    student: {
+                        OR: [
+                            { firstName: { contains: search } },
+                            { lastName: { contains: search } }
+                        ]
+                    }
+                }
+            ]
+        } : {};
+
+        const [total, submissions] = await Promise.all([
+            this.prisma.submission.count({ where }),
+            this.prisma.submission.findMany({
+                where,
+                skip: (page - 1) * limit,
+                take: +limit,
+                orderBy: orderBy ? { [orderBy]: order } : { submittedAt: 'desc' },
+                include: {
+                    student: true,
+                    subject: true,
+                    correction: true
+                }
+            })
+        ]);
+
+        const lastPage = Math.ceil(total / limit);
+
+        return {
+            data: submissions,
+            meta: {
+                total,
+                page,
+                lastPage
             }
-        });
+        };
     }
 
     async findOne(id: number) {

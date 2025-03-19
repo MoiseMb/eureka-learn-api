@@ -1,5 +1,5 @@
 import { IsNotEmpty, IsString, IsDate, IsEnum, IsNumber } from 'class-validator';
-import { EvaluationType } from '@prisma/client';
+import { EvaluationType, SubjectType } from '@prisma/client';
 
 export class CreateSubjectDto {
     @IsNotEmpty()
@@ -24,6 +24,10 @@ export class CreateSubjectDto {
     @IsNotEmpty()
     @IsEnum(EvaluationType)
     evaluationType: EvaluationType;
+
+    @IsNotEmpty()
+    @IsEnum(SubjectType)
+    type: SubjectType;
 
     @IsNotEmpty()
     @IsNumber()

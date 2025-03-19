@@ -1,6 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import cloudinary from './cloudinary.config';
-import { UploadApiResponse } from 'cloudinary';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { supabase } from './supabase.config';
 import { Multer } from 'multer';
 
 @Injectable()
@@ -8,50 +7,51 @@ export class UploadService {
   async uploadImage(
     file: Multer.File,
     folder: string,
-  ): Promise<UploadApiResponse> {
-    return new Promise((resolve, reject) => {
-      cloudinary.uploader
-        .upload_stream(
-          {
-            resource_type: 'auto',
-            folder: `eureka-leran/${folder}`,
-          },
-          (error, result) => {
-            if (error) {
-              reject(error);
-            } else {
-              resolve(result);
-            }
-          },
-        )
-        .end(file.buffer);
-    });
+  ): Promise<{ url: string }> {
+    try {
+      const fileName = `${Date.now()}_${file.originalname}`;
+      const filePath = `${folder}/${fileName}`;
+
+      const { data, error } = await supabase.storage
+        .from('uploads')
+        .upload(filePath, file.buffer, {
+          contentType: file.mimetype,
+          upsert: false
+        });
+
+      if (error) throw error;
+
+      const { data: urlData } = supabase.storage
+        .from('uploads')
+        .getPublicUrl(filePath);
+
+      return { url: urlData.publicUrl };
+    } catch (error) {
+      throw new InternalServerErrorException(`Failed to upload file: ${error.message}`);
+    }
   }
 
   async updateImage(
     file: Multer.File,
     folder: string,
     oldImageUrl?: string,
-  ): Promise<UploadApiResponse> {
+  ): Promise<{ url: string }> {
     if (oldImageUrl) {
       await this.deleteImage(oldImageUrl);
     }
-
     return this.uploadImage(file, folder);
   }
 
-  async deleteImage(imageUrl: string): Promise<void> {
+  async deleteImage(fileUrl: string): Promise<void> {
     try {
-      const publicId = imageUrl
-        .split('/')
-        .slice(-2)
-        .join('/')
-        .split('.')[0];
+      const filePath = fileUrl.split('/').slice(-2).join('/');
+      const { error } = await supabase.storage
+        .from('uploads')  // Changed bucket name here too
+        .remove([filePath]);
 
-      await cloudinary.uploader.destroy(`edm/${publicId}`);
+      if (error) throw error;
     } catch (error) {
-      console.error('Error deleting image from Cloudinary:', error);
-      throw error;
+      throw new InternalServerErrorException(`Failed to delete file: ${error.message}`);
     }
   }
 }

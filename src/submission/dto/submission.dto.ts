@@ -1,4 +1,4 @@
-import { Submission, User, Subject, Correction } from '@prisma/client';
+import { Submission, User, Subject, Correction, $Enums } from '@prisma/client';
 
 export class SubmissionDto implements Submission {
     id: number;
@@ -9,4 +9,5 @@ export class SubmissionDto implements Submission {
     student?: User;
     subject?: Subject;
     correction?: Correction;
+    type: $Enums.SubjectType;
 } 
