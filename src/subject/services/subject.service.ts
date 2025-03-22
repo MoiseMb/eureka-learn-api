@@ -7,7 +7,7 @@ import { Multer } from 'multer';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { PaginatedResult } from 'src/common/types/pagination.type';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { SubjectCreatedEvent } from 'src/submission/events/subject-created.event';
+import { SubjectCreatedEvent } from '../events/subject-created.event';
 
 @Injectable()
 export class SubjectService {
