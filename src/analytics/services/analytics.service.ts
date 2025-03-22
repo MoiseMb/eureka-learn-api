@@ -70,7 +70,6 @@ export class AnalyticsService {
             })
         ]);
 
-        console.log(totalSubmissions);
 
         return {
             totalSubmissions,
@@ -86,15 +85,13 @@ export class AnalyticsService {
         const [
             totalSubjects,
             totalStudents,
-            submissionsToCorrect,
+            submissionStats,
             correctionsByType,
             recentSubmissions
         ] = await Promise.all([
-            // Total subjects
             this.prisma.subject.count({
                 where: { teacherId: professorId }
             }),
-            // Total students in professor's classes
             this.prisma.user.count({
                 where: {
                     role: Role.STUDENT,
@@ -103,13 +100,16 @@ export class AnalyticsService {
                     }
                 }
             }),
-            // Submissions waiting for correction
-            this.prisma.submission.count({
+            // Submissions statistics with correction status
+            this.prisma.submission.findMany({
                 where: {
                     subject: {
                         teacherId: professorId
-                    },
-                    isCorrected: false
+                    }
+                },
+                select: {
+                    isCorrecting: true,
+                    isCorrected: true
                 }
             }),
             // Corrections by evaluation type
@@ -141,13 +141,23 @@ export class AnalyticsService {
                 take: 5
             })
         ]);
-
+    
+        const submissionMetrics = {
+            total: submissionStats.length,
+            correcting: submissionStats.filter(s => s.isCorrecting && !s.isCorrected).length,
+            corrected: submissionStats.filter(s => s.isCorrected).length,
+            pending: submissionStats.filter(s => !s.isCorrecting && !s.isCorrected).length
+        };
+    
         return {
             totalSubjects,
             totalStudents,
-            submissionsToCorrect,
+            submissionMetrics,
             correctionsByType,
-            recentSubmissions
+            recentSubmissions,
+            correctionProgress: submissionMetrics.total > 0 
+                ? Math.round((submissionMetrics.corrected / submissionMetrics.total) * 100) 
+                : 0
         };
     }
 

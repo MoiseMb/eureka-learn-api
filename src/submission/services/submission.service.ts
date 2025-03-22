@@ -28,14 +28,14 @@ export class SubmissionService {
         }
 
         try {
-            const uploadResult = await this.uploadService.uploadImage(file, 'submissions');
+            const uploadResult = await this.uploadService.uploadFile(file, 'submissions');
             const subject = await this.prisma.subject.findUnique({
                 where: { id: Number(data.subjectId) }
             });
 
             const submission = await this.prisma.submission.create({
                 data: {
-                    fileUrl: uploadResult.url,
+                    fileUrl: uploadResult,
                     subjectId: Number(data.subjectId),
                     studentId
                 },
@@ -50,7 +50,7 @@ export class SubmissionService {
             return submission;
         } catch (error) {
             if (error.url) {
-                await this.uploadService.deleteImage(error.url);
+                await this.uploadService.deleteFile(error.url);
             }
             throw new InternalServerErrorException('Failed to create submission: ' + error.message);
         }

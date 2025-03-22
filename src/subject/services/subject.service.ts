@@ -1,4 +1,5 @@
 import { Injectable, ForbiddenException, BadRequestException, NotFoundException, InternalServerErrorException } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CreateSubjectDto } from '../dto/create-subject.dto';
 import { UploadService } from 'src/upload/upload.service';
 import { Role, Subject } from '@prisma/client';
@@ -6,15 +7,17 @@ import { Multer } from 'multer';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { PaginatedResult } from 'src/common/types/pagination.type';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { SubjectCreatedEvent } from 'src/submission/events/subject-created.event';
 
 @Injectable()
 export class SubjectService {
     constructor(
         private prisma: PrismaService,
-        private uploadService: UploadService
+        private uploadService: UploadService,
+        private eventEmitter: EventEmitter2
     ) { }
 
-    async create(data: CreateSubjectDto, file: Multer.File, userId: number) {
+    async create(data: CreateSubjectDto, file: Multer.File, userId: number, correctionFile?: Multer.file) {
         const user = await this.prisma.user.findUnique({
             where: { id: userId }
         });
@@ -24,13 +27,14 @@ export class SubjectService {
         }
 
         try {
-            const uploadResult = await this.uploadService.uploadImage(file, 'subjects');
+            const uploadResult = await this.uploadService.uploadFile(file, 'subjects');
+            data.correctionFileUrl = correctionFile ? await this.uploadService.uploadFile(correctionFile, 'professorCorrectionSubjects') : null;
 
             const subject = await this.prisma.subject.create({
                 data: {
                     ...data,
                     classroomId: Number(data.classroomId),
-                    fileUrl: uploadResult.url,
+                    fileUrl: uploadResult,
                     teacherId: userId
                 },
                 include: {
@@ -39,11 +43,13 @@ export class SubjectService {
                 }
             });
 
-            return subject;
+            const eventSubject = await new SubjectCreatedEvent(subject);
+            this.eventEmitter.emit('subject.created', eventSubject);
 
+            return subject;
         } catch (error) {
             if (error.url) {
-                await this.uploadService.deleteImage(error.url);
+                await this.uploadService.deleteFile(error.url);
             }
 
             if (error.message.includes('Invalid value provided')) {
@@ -189,5 +195,79 @@ export class SubjectService {
         return this.prisma.subject.delete({
             where: { id }
         });
+    }
+
+    async getStudentsGrades(subjectId: number, professorId: number) {
+        const subject = await this.prisma.subject.findUnique({
+            where: { id: subjectId },
+            include: {
+                teacher: true,
+                classroom: {
+                    include: {
+                        students: true
+                    }
+                }
+            }
+        });
+
+        if (!subject) {
+            throw new NotFoundException('Subject not found');
+        }
+
+        if (subject.teacherId !== professorId) {
+            throw new ForbiddenException('You can only access grades for your subjects');
+        }
+
+        const studentsGrades = await this.prisma.user.findMany({
+            where: {
+                classroomId: subject.classroomId,
+                role: Role.STUDENT
+            },
+            select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+                submissions: {
+                    where: {
+                        subjectId
+                    },
+                    select: {
+                        id: true,
+                        fileUrl: true,
+                        submittedAt: true,
+                        isCorrecting: true,
+                        isCorrected: true,
+                        correction: {
+                            select: {
+                                score: true,
+                                notes: true,
+                                correctedAt: true
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        return {
+            subject: {
+                id: subject.id,
+                title: subject.title,
+                endDate: subject.endDate,
+                startDate: subject.startDate,
+                classroom: {
+                    id: subject.classroom.id,
+                    name: subject.classroom.name
+                }
+            },
+            students: studentsGrades.map(student => ({
+                id: student.id,
+                firstName: student.firstName,
+                lastName: student.lastName,
+                email: student.email,
+                submission: student.submissions[0] || null
+            }))
+        };
     }
 }

@@ -33,6 +33,7 @@
     "@nestjs/platform-express": "^10.0.0",
     "@prisma/client": "^5.10.2",
     "@supabase/supabase-js": "^2.49.1",
+    "@types/pdfkit": "^0.13.9",
     "axios": "^1.8.3",
     "bcrypt": "^5.1.1",
     "class-transformer": "^0.5.1",
@@ -40,8 +41,10 @@
     "cloudinary": "^2.6.0",
     "cookie-parser": "^1.4.6",
     "dotenv": "^16.4.5",
+    "ollama": "^0.5.14",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
+    "pdfkit": "^0.16.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1"
   },

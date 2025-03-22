@@ -16,22 +16,19 @@ export type StudentStats = {
     })[];
 };
 
-export type ProfessorStats = {
+export interface ProfessorStats {
     totalSubjects: number;
     totalStudents: number;
-    submissionsToCorrect: number;
-    correctionsByType: {
-        evaluationType: string;
-        _count: number;
-    }[];
-    recentSubmissions: {
-        id: number;
-        student: User;
-        subject: Subject;
-        submittedAt: Date;
-        fileUrl: string;
-    }[];
-};
+    submissionMetrics: {
+        total: number;
+        correcting: number;
+        corrected: number;
+        pending: number;
+    };
+    correctionsByType: any[];
+    recentSubmissions: any[];
+    correctionProgress: number;
+}
 
 export type AdminStats = {
     userStats: {

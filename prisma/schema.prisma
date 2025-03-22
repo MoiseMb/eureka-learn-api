@@ -56,6 +56,8 @@ model Subject {
   description       String?
   fileUrl           String
   correctionFileUrl String?
+  isCorrecting      Boolean        @default(false)
+  isCorrected       Boolean        @default(false)
   startDate         DateTime
   endDate           DateTime
   evaluationType    EvaluationType

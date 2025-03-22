@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsDate, IsEnum, IsNumber } from 'class-validator';
+import { IsNotEmpty, IsString, IsDate, IsEnum, IsNumber, IsOptional } from 'class-validator';
 import { EvaluationType, SubjectType } from '@prisma/client';
 
 export class CreateSubjectDto {
@@ -13,9 +13,9 @@ export class CreateSubjectDto {
     @IsString()
     fileUrl: string;
 
-    @IsNotEmpty()
+    @IsOptional()
     @IsString()
-    correctionFileUrl: string;
+    correctionFileUrl?: string;
 
     @IsNotEmpty()
     @IsDate()

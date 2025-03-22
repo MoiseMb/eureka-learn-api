@@ -4,15 +4,19 @@ import { Multer } from 'multer';
 
 @Injectable()
 export class UploadService {
-  async uploadImage(
+  async uploadFile(
     file: Multer.File,
     folder: string,
-  ): Promise<{ url: string }> {
+  ): Promise<string> {
     try {
-      const fileName = `${Date.now()}_${file.originalname}`;
+      if (!file || !file.originalname) {
+        throw new Error('Invalid file provided');
+      }
+
+      const fileName = `${Date.now()}_${file.originalname.replace(/\s+/g, '_')}`;
       const filePath = `${folder}/${fileName}`;
 
-      const { data, error } = await supabase.storage
+      const { error } = await supabase.storage
         .from('uploads')
         .upload(filePath, file.buffer, {
           contentType: file.mimetype,
@@ -25,28 +29,28 @@ export class UploadService {
         .from('uploads')
         .getPublicUrl(filePath);
 
-      return { url: urlData.publicUrl };
+      return urlData.publicUrl;
     } catch (error) {
       throw new InternalServerErrorException(`Failed to upload file: ${error.message}`);
     }
   }
 
-  async updateImage(
+  async updateFile(
     file: Multer.File,
     folder: string,
-    oldImageUrl?: string,
-  ): Promise<{ url: string }> {
-    if (oldImageUrl) {
-      await this.deleteImage(oldImageUrl);
+    oldFileUrl?: string,
+  ): Promise<string> {
+    if (oldFileUrl) {
+      await this.deleteFile(oldFileUrl);
     }
-    return this.uploadImage(file, folder);
+    return this.uploadFile(file, folder);
   }
 
-  async deleteImage(fileUrl: string): Promise<void> {
+  async deleteFile(fileUrl: string): Promise<void> {
     try {
       const filePath = fileUrl.split('/').slice(-2).join('/');
       const { error } = await supabase.storage
-        .from('uploads')  // Changed bucket name here too
+        .from('uploads')
         .remove([filePath]);
 
       if (error) throw error;

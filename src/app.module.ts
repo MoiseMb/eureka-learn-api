@@ -13,6 +13,7 @@ import { CorrectionModule } from './correction/correction.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { AiModule } from './ai/ai.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { AnalyticsModule } from './analytics/analytics.module';
     CorrectionModule,
     AnalyticsModule,
     EventEmitterModule.forRoot(),
+    AiModule
   ],
   controllers: [AppController],
   providers: [
