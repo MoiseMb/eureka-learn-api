@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsString, IsDate, IsEnum, IsNumber, IsOptional } from 'class-validator';
-import { EvaluationType, SubjectType } from '@prisma/client';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { EvaluationType, SubjectType } from '.prisma/client'; // Correction de l'importation
 
 export class CreateSubjectDto {
     @ApiPropertyOptional({
@@ -23,6 +23,7 @@ export class CreateSubjectDto {
         description: 'The description of the subject',
         example: 'Complete exercises 1 to 10',
     })
+    @IsOptional()
     @IsString()
     description?: string;
 
@@ -61,7 +62,7 @@ export class CreateSubjectDto {
     @ApiProperty({
         description: 'The evaluation type of the subject',
         enum: EvaluationType,
-        example: EvaluationType.QUIZ,
+        example: EvaluationType.SQL,
     })
     @IsNotEmpty()
     @IsEnum(EvaluationType)
@@ -70,7 +71,7 @@ export class CreateSubjectDto {
     @ApiProperty({
         description: 'The type of the subject',
         enum: SubjectType,
-        example: SubjectType.HOMEWORK,
+        example: SubjectType.PDF,
     })
     @IsNotEmpty()
     @IsEnum(SubjectType)

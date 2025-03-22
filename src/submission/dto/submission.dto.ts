@@ -1,7 +1,23 @@
-import { Submission, User, Subject, Correction, $Enums } from '@prisma/client';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { SubjectType } from '@prisma/client';
 
-export class SubmissionDto implements Submission {
+
+export class UserDto {
+    @ApiProperty({ description: "User ID", example: 1 })
+    id: number;
+}
+
+export class SubjectDto {
+    @ApiProperty({ description: "Subject ID", example: 1 })
+    id: number;
+}
+
+export class CorrectionDto {
+    @ApiProperty({ description: "Correction ID", example: 1 })
+    id: number;
+}
+
+export class SubmissionDto {
     @ApiProperty({
         description: 'The ID of the submission',
         example: 1,
@@ -34,28 +50,28 @@ export class SubmissionDto implements Submission {
 
     @ApiPropertyOptional({
         description: 'The student who made the submission',
-        type: () => User,
+        type: () => UserDto,
     })
-    student?: User;
+    student?: UserDto;
 
     @ApiPropertyOptional({
         description: 'The subject for which the submission was made',
-        type: () => Subject,
+        type: () => SubjectDto,
     })
-    subject?: Subject;
+    subject?: SubjectDto;
 
     @ApiPropertyOptional({
         description: 'The correction associated with the submission',
-        type: Correction,
+        type: () => CorrectionDto,
     })
-    correction?: Correction;
+    correction?: CorrectionDto;
 
     @ApiProperty({
         description: 'The type of the subject',
-        enum: $Enums.SubjectType,
-        example: $Enums.SubjectType.PDF,
+        enum: SubjectType,
+        example: SubjectType.PDF,
     })
-    type: $Enums.SubjectType;
+    type: SubjectType;
 
     @ApiProperty({
         description: 'Indicates if the submission is currently being corrected',

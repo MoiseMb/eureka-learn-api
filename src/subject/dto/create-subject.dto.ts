@@ -53,7 +53,7 @@ export class CreateSubjectDto {
     @ApiProperty({
         description: 'The evaluation type of the subject',
         enum: EvaluationType,
-        example: EvaluationType.QUIZ,
+        example: EvaluationType.POO_JAVA,
     })
     @IsNotEmpty()
     @IsEnum(EvaluationType)
@@ -62,7 +62,7 @@ export class CreateSubjectDto {
     @ApiProperty({
         description: 'The type of the subject',
         enum: SubjectType,
-        example: SubjectType.HOMEWORK,
+        example: SubjectType.TEXT,
     })
     @IsNotEmpty()
     @IsEnum(SubjectType)
