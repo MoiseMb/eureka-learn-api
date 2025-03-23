@@ -11,7 +11,7 @@ async function bootstrap() {
     .build();
 
   const app = await NestFactory.create(AppModule);
-  
+
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api-doc', app, document);
 
@@ -29,6 +29,6 @@ async function bootstrap() {
     exposedHeaders: ['Content-Range', 'Authorization'],
   };
   app.enableCors(corsOptions);
-  await app.listen(3002);
+  await app.listen(3000);
 }
 bootstrap();
