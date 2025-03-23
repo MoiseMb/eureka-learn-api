@@ -2,7 +2,7 @@ import { PartialType } from '@nestjs/mapped-types';
 import { CreateUserDto } from './create-user.dto';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsNumber } from 'class-validator';
-import {Role} from '@Prisma/client'
+import { Role } from '@prisma/client';  // Correction de la casse ici
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {
     @ApiProperty({
@@ -49,5 +49,5 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
         example: 1,
     })
     classroomId?: number;
-}import { PrismaClient } from '@prisma/client';
+} import { PrismaClient } from '@prisma/client';
 
