@@ -22,7 +22,7 @@ export class AuthController {
     @Public()
     @HttpCode(HttpStatus.OK)
     @Post('student-professor/login')
-    @ApiOperation({ summary: 'Login for students and admin users' })
+    @ApiOperation({ summary: 'Login for students and professors users' })
     @ApiResponse({ status: 200, description: 'User logged in successfully', type: AuthResponseDto })
     @ApiResponse({ status: 401, description: 'Unauthorized - Invalid credentials or invalid role' })
     async loginStudentOrAdmin(@Body() loginDto: LoginDto): Promise<AuthResponseDto> {

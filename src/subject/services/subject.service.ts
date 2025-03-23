@@ -26,6 +26,8 @@ export class SubjectService {
             throw new ForbiddenException('Only professors can create subjects');
         }
 
+
+
         try {
             const uploadResult = await this.uploadService.uploadFile(file, 'subjects');
             data.correctionFileUrl = correctionFile ? await this.uploadService.uploadFile(correctionFile, 'professorCorrectionSubjects') : null;

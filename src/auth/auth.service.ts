@@ -45,7 +45,6 @@ export class AuthService {
 
     async loginStudentOrProfessor(loginDto: LoginDto): Promise<AuthResponseDto> {
         const user = await this.userService.findByEmail(loginDto.email);
-        console.log(user);
 
         if (!user || user.role === Role.ADMIN) {
             throw new UnauthorizedException('Access denied. Student or professor only.');
