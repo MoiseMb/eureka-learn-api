@@ -4,16 +4,22 @@ import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.int
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+
   const config = new DocumentBuilder()
     .setTitle('Eureka-Learn API')
     .setDescription('Documentation API of Eureka-Learn')
     .setVersion('1.0')
+    .addBearerAuth()  // Add this line for bearer token authentication
     .build();
 
-  const app = await NestFactory.create(AppModule);
-
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api-doc', app, document);
+  SwaggerModule.setup('api-doc', app, document, {
+    swaggerOptions: {
+      persistAuthorization: true,
+    },
+    customSiteTitle: 'Eureka-Learn API Documentation'
+  });
 
   const corsOptions: CorsOptions = {
     origin: '*',
@@ -28,7 +34,8 @@ async function bootstrap() {
     ],
     exposedHeaders: ['Content-Range', 'Authorization'],
   };
+  
   app.enableCors(corsOptions);
-  await app.listen(3000);
+  await app.listen(3002);
 }
 bootstrap();
