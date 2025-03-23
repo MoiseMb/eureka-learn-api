@@ -214,29 +214,31 @@ export class AnalyticsService {
                     SELECT 
                         'submission' as type, 
                         s.id, 
-                        s.submittedAt as timestamp, 
-                        u.firstName, 
-                        u.lastName, 
+                        s."submittedAt" as timestamp, 
+                        u."firstName", 
+                        u."lastName", 
                         sub.title,
-                        IF(s.isCorrected = true, 'corrected',
-                            IF(s.isCorrecting = true, 'correcting', 'pending')
-                        ) as status
-                    FROM Submission s
-                    JOIN User u ON s.studentId = u.id
-                    JOIN Subject sub ON s.subjectId = sub.id
+                        CASE 
+                            WHEN s."isCorrected" = true THEN 'corrected'
+                            WHEN s."isCorrecting" = true THEN 'correcting'
+                            ELSE 'pending'
+                        END as status
+                    FROM submission s
+                    JOIN "User" u ON s."studentId" = u.id
+                    JOIN "Subject" sub ON s."subjectId" = sub.id
                     UNION ALL
                     SELECT 
                         'correction' as type, 
                         c.id, 
-                        c.correctedAt as timestamp,
-                        u.firstName, 
-                        u.lastName, 
+                        c."correctedAt" as timestamp,
+                        u."firstName", 
+                        u."lastName", 
                         sub.title,
-                        CONCAT('score: ', CAST(IFNULL(c.score, 0) AS CHAR)) as status
-                    FROM Correction c
-                    JOIN Submission s ON c.submissionId = s.id
-                    JOIN User u ON s.studentId = u.id
-                    JOIN Subject sub ON s.subjectId = sub.id
+                        CONCAT('score: ', CAST(c.score as VARCHAR)) as status
+                    FROM "Correction" c
+                    JOIN submission s ON c."submissionId" = s.id
+                    JOIN "User" u ON s."studentId" = u.id
+                    JOIN "Subject" sub ON s."subjectId" = sub.id
                 ) as activities
                 ORDER BY timestamp DESC
                 LIMIT 10
