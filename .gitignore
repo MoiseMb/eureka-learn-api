@@ -36,3 +36,8 @@ lerna-debug.log*
 
 # Env file
 .env
+
+# Exception for Swagger UI files
+!public/swagger-ui.css
+!public/swagger-ui-bundle.js
+!public/swagger-ui-standalone-preset.js

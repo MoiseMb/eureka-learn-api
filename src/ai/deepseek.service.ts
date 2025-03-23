@@ -5,20 +5,21 @@ import axios from 'axios';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UploadService } from 'src/upload/upload.service';
 import * as PDFDocument from 'pdfkit';
-import Ollama from 'ollama';
+import * as fs from 'fs';
+import * as pdf from 'pdf-parse';
+import { PDFDocument as PDFLib, StandardFonts } from 'pdf-lib';
+import { v4 as uuidv4 } from 'uuid';
 import { Multer } from 'multer';
 
 @Injectable()
 export class DeepseekService {
-    private readonly ollama: typeof Ollama;
-    private readonly MODEL = 'deepseek-r1:1.5b';
+    private readonly OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+    private readonly OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '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';
 
     constructor(
         private prisma: PrismaService,
         private uploadService: UploadService
-    ) {
-        this.ollama = Ollama;
-    }
+    ) { }
 
     @OnEvent('subject.created')
     async handleSubjectCreated(event: SubjectCreatedEvent) {
@@ -31,32 +32,40 @@ export class DeepseekService {
                 data: { isCorrecting: true }
             });
 
+            // Récupérer le contenu du fichier du sujet
             const fileResponse = await axios.get(subject.fileUrl);
             const subjectContent = fileResponse.data;
 
-            const response = await this.ollama.generate({
-                model: this.MODEL,
-                prompt: this.buildSubjectPrompt(subject, subjectContent),
-                options: {
-                    temperature: 0.7,
-                    top_p: 0.9,
-                }
-            });
+            // Générer le guide de correction en utilisant OpenRouter au lieu d'Ollama
+            const correctionGuide = await this.generateCorrectionWithOpenRouter(subject, subjectContent);
 
-            const correctionGuide = response.response;
-            const pdfBuffer = await this.generatePDF(subject.title, correctionGuide);
+            // Générer le PDF
+            const pdfFilename = `correction_${subject.id}.pdf`;
+            const textFilename = `temp_${uuidv4()}.txt`;
 
+            // Sauvegarder le contenu dans un fichier temporaire
+            fs.writeFileSync(textFilename, correctionGuide, 'utf-8');
+
+            // Convertir en PDF
+            await this.convertTextToPdf(textFilename, pdfFilename);
+
+            // Lire le fichier PDF
+            const pdfBuffer = fs.readFileSync(pdfFilename);
+
+            // Créer un objet file pour l'upload
             const correctionFile = {
                 buffer: pdfBuffer,
                 originalname: `correction_${subject.title}.pdf`,
                 mimetype: 'application/pdf'
             };
 
+            // Uploader le fichier
             const uploadResult = await this.uploadService.uploadFile(
                 correctionFile as Multer.File,
                 'professorCorrectionSubjects'
             );
 
+            // Mettre à jour le sujet dans la base de données
             await this.prisma.subject.update({
                 where: { id: subject.id },
                 data: {
@@ -65,6 +74,10 @@ export class DeepseekService {
                     isCorrected: true,
                 }
             });
+
+            // Nettoyer les fichiers temporaires
+            fs.unlinkSync(textFilename);
+            fs.unlinkSync(pdfFilename);
 
             console.log(`✅ AI correction guide generated successfully for subject: ${subject.title}`);
         } catch (error) {
@@ -75,6 +88,43 @@ export class DeepseekService {
             console.error('❌ Subject correction generation failed:', error);
             throw error;
         }
+    }
+
+    private async generateCorrectionWithOpenRouter(subject: any, content: string): Promise<string> {
+        // Préparer le prompt pour OpenRouter
+        const payload = {
+            model: 'google/gemini-2.0-flash-001', // Utilisation de Google Gemini 2.0 Flash
+            messages: [
+                {
+                    role: 'user',
+                    content: [
+                        {
+                            type: 'text',
+                            text: this.buildSubjectPrompt(subject, content),
+                        },
+                    ],
+                },
+            ],
+        };
+
+        // Envoyer la requête à l'API OpenRouter
+        const openRouterResponse = await axios.post(this.OPENROUTER_API_URL, payload, {
+            headers: {
+                Authorization: `Bearer ${this.OPENROUTER_API_KEY}`,
+                'HTTP-Referer': 'http://localhost:3002',
+                'X-Title': 'NestJS App',
+                'Content-Type': 'application/json',
+            },
+        });
+
+        // Extraire et nettoyer la réponse
+        const resultOfPrompt = openRouterResponse.data.choices[0].message.content.trim();
+        const cleanedResponse = resultOfPrompt
+            .replace(/<think>.*?<\/think>/gs, '')
+            .replace(/\\[()\[\]]/g, '')
+            .replace(/\\boxed{(.*?)}/g, '$1');
+
+        return cleanedResponse;
     }
 
     private buildSubjectPrompt(subject: any, content: string): string {
@@ -159,7 +209,32 @@ ${content}
         `;
     }
 
-    private async generatePDF(title: string, content: string): Promise<Buffer> {
+    // Fonction pour convertir un fichier texte en PDF
+    private async convertTextToPdf(textFilename: string, pdfFilename: string): Promise<void> {
+        const pdfDoc = await PDFLib.create();
+        const page = pdfDoc.addPage();
+        const { width, height } = page.getSize();
+        const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+
+        const textContent = fs.readFileSync(textFilename, 'utf-8');
+        const lines = textContent.split('\n');
+
+        let y = height - 50;
+        lines.forEach((line) => {
+            if (y < 50) {
+                const newPage = pdfDoc.addPage();
+                y = height - 50;
+            }
+            page.drawText(line, { x: 50, y, size: 12, font });
+            y -= 15; // Espacement entre les lignes
+        });
+
+        const pdfBytes = await pdfDoc.save();
+        fs.writeFileSync(pdfFilename, pdfBytes);
+    }
+
+    // Méthode précédente de génération de PDF utilisée comme alternative
+    private generatePDFWithPDFKit(title: string, content: string): Promise<Buffer> {
         return new Promise((resolve, reject) => {
             const doc = new PDFDocument();
             const buffers = [];

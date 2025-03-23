@@ -1,12 +1,15 @@
 import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { User } from '@prisma/client';
+import { Role, User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { UserResponseDto } from '../dto/user-response.dto';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 import { PaginatedResult } from '../../common/types/pagination.type';
+import { BulkCreateProfessorsDto, BulkCreateStudentsDto } from '../dto/bulk-create-users.dto';
+import { hash } from 'bcrypt';
+
 @Injectable()
 export class UserService {
     constructor(private prisma: PrismaService) { }
@@ -129,5 +132,66 @@ export class UserService {
         });
 
         return this.toResponseDto(deletedUser);
+    }
+
+    async bulkCreateProfessors(data: BulkCreateProfessorsDto) {
+        const defaultPassword = await hash('passer', 12);
+
+        const professors = await this.prisma.$transaction(
+            data.professors.map(professor =>
+                this.prisma.user.create({
+                    data: {
+                        ...professor,
+                        password: defaultPassword,
+                        role: Role.PROFESSOR
+                    }
+                })
+            )
+        );
+
+        return professors;
+    }
+
+    async bulkCreateStudents(data: BulkCreateStudentsDto) {
+        const studentsByClass = data.students.reduce((acc, student) => {
+            if (!acc[student.className]) {
+                acc[student.className] = [];
+            }
+            acc[student.className].push(student);
+            return acc;
+        }, {});
+
+        const results = await this.prisma.$transaction(async (prisma) => {
+            const createdStudents = [];
+
+            for (const [className, students] of Object.entries(studentsByClass)) {
+                const classroom = await prisma.classroom.upsert({
+                    where: { name: className },
+                    update: {},
+                    create: { name: className }
+                });
+
+                const classStudents = await Promise.all(
+                    (students as any[]).map(student =>
+                        prisma.user.create({
+                            data: {
+                                firstName: student.firstName,
+                                lastName: student.lastName,
+                                email: student.email,
+                                password: student.password,
+                                role: Role.STUDENT,
+                                classroomId: classroom.id
+                            }
+                        })
+                    )
+                );
+
+                createdStudents.push(...classStudents);
+            }
+
+            return createdStudents;
+        });
+
+        return results;
     }
 }

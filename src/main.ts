@@ -1,39 +1,30 @@
 import { NestFactory } from '@nestjs/core';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
-import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { NestExpressApplication } from '@nestjs/platform-express';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create(AppModule);
+  app.enableCors();
+  app.useGlobalPipes(new ValidationPipe());
 
   const config = new DocumentBuilder()
-    .setTitle('Eureka-Learn API')
-    .setDescription('Documentation API of Eureka-Learn')
+    .setTitle('Eureka Learn API')
+    .setDescription('The Eureka Learn API description')
     .setVersion('1.0')
     .addBearerAuth()
-    .addServer('https://eureka-learn-api.vercel.app', 'Production')
-    .addServer('http://localhost:3002', 'Local environment')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api-doc', app, document);
+  SwaggerModule.setup('api', app, document, {
+    customSiteTitle: 'Eureka Learn API Documentation',
+    customCssUrl: '/swagger-ui.css',
+    customJs: [
+      '/swagger-ui-bundle.js',
+      '/swagger-ui-standalone-preset.js'
+    ]
+  });
 
-  const corsOptions: CorsOptions = {
-    origin: '*',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    preflightContinue: false,
-    allowedHeaders: [
-      'Content-type',
-      'Access-Control-Request-Headers',
-      'range',
-      'Content-Range',
-      'Authorization',
-    ],
-    exposedHeaders: ['Content-Range', 'Authorization'],
-  };
-  
-  app.enableCors(corsOptions);
-  await app.listen(3002);
+  await app.listen(process.env.PORT || 3002);
 }
 bootstrap();

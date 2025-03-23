@@ -7,8 +7,9 @@ import { Roles } from '../../auth/roles.decorator';
 import { Public } from '../../auth/constants';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiQuery, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
+import { BulkCreateProfessorsDto, BulkCreateStudentsDto, } from '../dto/bulk-create-users.dto';
 
-@ApiTags('User')
+@ApiTags('Users')
 @ApiBearerAuth()
 @Controller('user')
 export class UserController {
@@ -75,5 +76,27 @@ export class UserController {
     @ApiResponse({ status: 404, description: 'User not found.' })
     remove(@Param('id') id: string) {
         return this.userService.remove(+id);
+    }
+
+    @ApiOperation({ summary: 'Bulk create professors' })
+    @ApiResponse({
+        status: 201,
+        description: 'Professors successfully created',
+    })
+    @Post('bulk/professors')
+    @Roles(Role.ADMIN)
+    async bulkCreateProfessors(@Body() data: BulkCreateProfessorsDto) {
+        return this.userService.bulkCreateProfessors(data);
+    }
+
+    @ApiOperation({ summary: 'Bulk create students' })
+    @ApiResponse({
+        status: 201,
+        description: 'Students successfully created',
+    })
+    @Post('bulk/students')
+    @Roles(Role.ADMIN, Role.PROFESSOR)
+    async bulkCreateStudents(@Body() data: BulkCreateStudentsDto) {
+        return this.userService.bulkCreateStudents(data);
     }
 }
