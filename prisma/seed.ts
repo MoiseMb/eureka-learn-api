@@ -22,12 +22,12 @@ async function main() {
 
         // Create Professor
         const professor = await prisma.user.upsert({
-            where: { email: 'prof@test.com' },
+            where: { email: 'wally@gmail.com' },
             update: {},
             create: {
-                email: 'prof@test.com',
-                firstName: 'John',
-                lastName: 'Doe',
+                email: 'wally@gmail.com',
+                firstName: 'Wally ',
+                lastName: 'NDOUR',
                 password: hashedPassword,
                 role: Role.PROFESSOR,
             },
@@ -35,12 +35,12 @@ async function main() {
 
         // Create Student
         const student = await prisma.user.upsert({
-            where: { email: 'student@test.com' },
+            where: { email: 'suzane@gmail.com' },
             update: {},
             create: {
-                email: 'student@test.com',
-                firstName: 'Jane',
-                lastName: 'Smith',
+                email: 'suzane@gmail.com',
+                firstName: 'Suzanne',
+                lastName: 'LY',
                 password: hashedPassword,
                 role: Role.STUDENT,
             },
@@ -49,23 +49,22 @@ async function main() {
         // Create Classroom
         const classroom = await prisma.classroom.create({
             data: {
-                name: 'Computer Science 101',
-                description: 'Introduction to Programming',
+                name: 'DIC2 TR',
+                description: 'classe des ingenieures ',
                 teacher: { connect: { id: professor.id } },
                 students: { connect: { id: student.id } },
             },
         });
 
-        // Create Subjects
         const subjects = await Promise.all([
             prisma.subject.create({
                 data: {
-                    title: 'Java Programming Basics',
-                    description: 'Introduction to Java Programming',
-                    fileUrl: 'https://example.com/java-basics.pdf',
+                    title: 'Controle SQL',
+                    description: 'Introduction a sql',
+                    fileUrl: 'https://sjqemivqghmprsddwifn.supabase.co/storage/v1/object/public/uploads/subjects/1742398172772_evaluation.pdf',
                     startDate: new Date(),
                     endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-                    evaluationType: EvaluationType.POO_JAVA,
+                    evaluationType: EvaluationType.SQL,
                     type: SubjectType.PDF,
                     teacher: { connect: { id: professor.id } },
                     classroom: { connect: { id: classroom.id } },
@@ -73,9 +72,9 @@ async function main() {
             }),
             prisma.subject.create({
                 data: {
-                    title: 'Python Programming',
-                    description: 'Python for Beginners',
-                    fileUrl: 'https://example.com/python-basics.pdf',
+                    title: 'exam sql',
+                    description: 'Introduction a sql',
+                    fileUrl: 'https://sjqemivqghmprsddwifn.supabase.co/storage/v1/object/public/uploads/subjects/1742398172772_evaluation.pdf',
                     startDate: new Date(),
                     endDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
                     evaluationType: EvaluationType.PYTHON,
@@ -86,13 +85,12 @@ async function main() {
             }),
         ]);
 
-        // Create Submissions and Corrections
         for (const subject of subjects) {
             const submissions = await Promise.all(
                 Array(3).fill(null).map(async (_, index) => {
                     const submission = await prisma.submission.create({
                         data: {
-                            fileUrl: `https://example.com/submission-${index + 1}.pdf`,
+                            fileUrl: `https://sjqemivqghmprsddwifn.supabase.co/storage/v1/object/public/uploads/submissions/1742503463055_reponse.pdf`,
                             student: { connect: { id: student.id } },
                             subject: { connect: { id: subject.id } },
                             type: SubjectType.PDF,
@@ -100,7 +98,6 @@ async function main() {
                         },
                     });
 
-                    // Create correction for each submission
                     await prisma.correction.create({
                         data: {
                             score: Math.random() * 20,

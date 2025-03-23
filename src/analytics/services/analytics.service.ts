@@ -141,22 +141,22 @@ export class AnalyticsService {
                 take: 5
             })
         ]);
-    
+
         const submissionMetrics = {
             total: submissionStats.length,
             correcting: submissionStats.filter(s => s.isCorrecting && !s.isCorrected).length,
             corrected: submissionStats.filter(s => s.isCorrected).length,
             pending: submissionStats.filter(s => !s.isCorrecting && !s.isCorrected).length
         };
-    
+
         return {
             totalSubjects,
             totalStudents,
             submissionMetrics,
             correctionsByType,
             recentSubmissions,
-            correctionProgress: submissionMetrics.total > 0 
-                ? Math.round((submissionMetrics.corrected / submissionMetrics.total) * 100) 
+            correctionProgress: submissionMetrics.total > 0
+                ? Math.round((submissionMetrics.corrected / submissionMetrics.total) * 100)
                 : 0
         };
     }
