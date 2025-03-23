@@ -5,15 +5,15 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const config = new DocumentBuilder()
-    .setTitle('Demo API')
-    .setDescription('A Demo API with CRUD functionality')
+    .setTitle('Eureka-Learn API')
+    .setDescription('Documentation API of Eureka-Learn')
     .setVersion('1.0')
     .build();
 
   const app = await NestFactory.create(AppModule);
   
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  SwaggerModule.setup('api-doc', app, document);
 
   const corsOptions: CorsOptions = {
     origin: '*',
