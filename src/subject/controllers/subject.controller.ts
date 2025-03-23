@@ -43,9 +43,10 @@ export class SubjectController {
     @ApiResponse({ status: 403, description: 'Forbidden.' })
     async create(
         @Body() createSubjectDto: CreateSubjectDto,
-        @UploadedFiles() files: { file?: Multer.File[], correctionFile?: Multer.File[] },
+        @UploadedFiles() files: { file: Multer.File[], correctionFile?: Multer.File[] },
         @Request() req
     ) {
+
         const file = files.file?.[0];
         const correctionFile = files.correctionFile?.[0];
         return this.subjectService.create(createSubjectDto, file, req.user.id, correctionFile);

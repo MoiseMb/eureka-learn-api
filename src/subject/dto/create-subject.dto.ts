@@ -8,30 +8,20 @@ export class CreateSubjectDto {
         example: 'Math Homework',
     })
     @IsNotEmpty()
-    @IsString()
     title: string;
 
     @ApiPropertyOptional({
         description: 'The description of the subject',
         example: 'Complete exercises 1 to 10',
     })
-    @IsString()
     description?: string;
 
-    @ApiProperty({
-        description: 'The URL of the subject file',
-        example: 'https://example.com/file.pdf',
-    })
-    @IsNotEmpty()
-    @IsString()
-    fileUrl: string;
 
     @ApiPropertyOptional({
         description: 'The URL of the correction file (optional)',
         example: 'https://example.com/correction.pdf',
     })
     @IsOptional()
-    @IsString()
     correctionFileUrl?: string;
 
     @ApiProperty({
@@ -39,7 +29,6 @@ export class CreateSubjectDto {
         example: '2023-10-01T12:00:00Z',
     })
     @IsNotEmpty()
-    @IsDate()
     startDate: Date;
 
     @ApiProperty({
@@ -47,7 +36,6 @@ export class CreateSubjectDto {
         example: '2023-10-10T12:00:00Z',
     })
     @IsNotEmpty()
-    @IsDate()
     endDate: Date;
 
     @ApiProperty({
@@ -73,6 +61,5 @@ export class CreateSubjectDto {
         example: 1,
     })
     @IsNotEmpty()
-    @IsNumber()
     classroomId: number;
 }
