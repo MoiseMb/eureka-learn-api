@@ -189,6 +189,12 @@ export class DeepseekService {
                 ],
             };
 
+            console.log('🔄 Making OpenRouter API request with URL:', this.OPENROUTER_API_URL);
+            console.log('📝 Request headers:', {
+                'HTTP-Referer': this.APP_URL,
+                'X-Title': 'NestJS App',
+            });
+
             const openRouterResponse = await axios.post(this.OPENROUTER_API_URL, payload, {
                 headers: {
                     Authorization: `Bearer ${this.OPENROUTER_API_KEY}`,
@@ -196,7 +202,13 @@ export class DeepseekService {
                     'X-Title': 'NestJS App',
                     'Content-Type': 'application/json',
                 },
+                timeout: 240000, // 2 minutes timeout
             });
+
+            if (!openRouterResponse.data?.choices?.[0]?.message?.content) {
+                console.error('❌ Invalid OpenRouter API response:', openRouterResponse.data);
+                throw new Error('Invalid response format from OpenRouter API');
+            }
 
             const resultOfPrompt = openRouterResponse.data.choices[0].message.content.trim();
             const cleanedResponse = resultOfPrompt
@@ -206,8 +218,12 @@ export class DeepseekService {
 
             return cleanedResponse;
         } catch (error) {
-            console.error('❌ OpenRouter API request failed:', error);
-            throw new Error('Failed to generate correction guide with OpenRouter');
+            console.error('❌ OpenRouter API request failed:', {
+                error: error.message,
+                response: error.response?.data,
+                status: error.response?.status,
+            });
+            throw new Error(`Failed to generate correction guide with OpenRouter: ${error.message}`);
         }
     }
 
