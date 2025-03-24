@@ -14,6 +14,9 @@ import { v4 as uuidv4 } from 'uuid';
 export class DeepseekService {
     private readonly OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
     private readonly OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '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';
+    private readonly APP_URL = process.env.NODE_ENV === 'production'
+        ? 'https://eureka-learn-api.vercel.app'
+        : 'http://localhost:3002';
 
     constructor(
         private prisma: PrismaService,
@@ -189,7 +192,7 @@ export class DeepseekService {
             const openRouterResponse = await axios.post(this.OPENROUTER_API_URL, payload, {
                 headers: {
                     Authorization: `Bearer ${this.OPENROUTER_API_KEY}`,
-                    'HTTP-Referer': 'http://localhost:3002',
+                    'HTTP-Referer': this.APP_URL,
                     'X-Title': 'NestJS App',
                     'Content-Type': 'application/json',
                 },
@@ -228,7 +231,7 @@ export class DeepseekService {
             const openRouterResponse = await axios.post(this.OPENROUTER_API_URL, payload, {
                 headers: {
                     Authorization: `Bearer ${this.OPENROUTER_API_KEY}`,
-                    'HTTP-Referer': 'http://localhost:3002',
+                    'HTTP-Referer': this.APP_URL,
                     'X-Title': 'NestJS App',
                     'Content-Type': 'application/json',
                 },
@@ -448,20 +451,4 @@ Detail possible optimizations for performance improvement.
     }
 
 
-    // Méthode précédente de génération de PDF utilisée comme alternative
-    // private generatePDFWithPDFKit(title: string, content: string): Promise<Buffer> {
-    //     return new Promise((resolve, reject) => {
-    //         const doc = new PDFDocument();
-    //         const buffers = [];
-
-    //         doc.on('data', buffers.push.bind(buffers));
-    //         doc.on('end', () => resolve(Buffer.concat(buffers)));
-    //         doc.on('error', reject);
-
-    //         doc.fontSize(20).text('Correction Guide - ' + title, { align: 'center' });
-    //         doc.moveDown();
-    //         doc.fontSize(12).text(content);
-    //         doc.end();
-    //     });
-    // }
 }
