@@ -15,7 +15,7 @@ export class DeepseekService {
     private readonly OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
     private readonly OPENROUTER_API_KEY =
         // process.env.OPENROUTER_API_KEY || 
-        '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';
+        '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';
     private readonly APP_URL = process.env.NODE_ENV === 'production'
         ? 'https://eureka-learn-api.vercel.app'
         : 'http://localhost:3002';
