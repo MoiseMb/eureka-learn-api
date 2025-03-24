@@ -13,7 +13,7 @@ import { v4 as uuidv4 } from 'uuid';
 @Injectable()
 export class DeepseekService {
     private readonly OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
-    private readonly OPENROUTER_API_KEY = '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';
+    private readonly OPENROUTER_API_KEY = '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';
     // process.env.OPENROUTER_API_KEY || 
 
     private readonly APP_URL = process.env.NODE_ENV === 'production'
@@ -196,10 +196,9 @@ export class DeepseekService {
             const openRouterResponse = await axios.post(this.OPENROUTER_API_URL, payload, {
                 headers: {
                     'Authorization': `Bearer ${this.OPENROUTER_API_KEY}`,
-                    'HTTP-Referer': this.APP_URL,
+                    'HTTP-Referer': '',
                     'X-Title': 'Eureka Learn API',
                     'Content-Type': 'application/json',
-                    'OpenAI-Organization': 'eureka-learn-org',
                 },
                 timeout: 240000,
             });
@@ -246,7 +245,7 @@ export class DeepseekService {
             const openRouterResponse = await axios.post(this.OPENROUTER_API_URL, payload, {
                 headers: {
                     Authorization: `Bearer ${this.OPENROUTER_API_KEY}`,
-                    'HTTP-Referer': this.APP_URL,
+                    'HTTP-Referer': '',
                     'X-Title': 'NestJS App',
                     'Content-Type': 'application/json',
                 },
