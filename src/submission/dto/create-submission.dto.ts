@@ -6,17 +6,17 @@ export class CreateSubmissionDto {
         description: 'The URL of the submitted file',
         example: 'https://example.com/file.pdf',
     })
-    fileUrl: string;
+    fileUrl?: string;
 
     @ApiProperty({
         description: 'The ID of the student submitting the file',
         example: 1,
     })
-    studentId: number;
+    studentId?: number;
 
     @ApiProperty({
         description: 'The ID of the subject for which the file is submitted',
         example: 1,
     })
-    subjectId: number;
+    subjectId: string;
 }

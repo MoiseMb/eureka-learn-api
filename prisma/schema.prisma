@@ -48,6 +48,7 @@ enum SubjectType {
   PDF
   TEXT
   MARKDOWN
+  LATEX
 }
 
 model Subject {
@@ -91,7 +92,7 @@ model Correction {
   id             Int            @id @default(autoincrement())
   score          Float?
   correctedAt    DateTime       @default(now())
-  notes          String?
+  notes          String?        @db.Text
   evaluationType EvaluationType
   submission     Submission     @relation(fields: [submissionId], references: [id])
   submissionId   Int            @unique

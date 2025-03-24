@@ -19,5 +19,5 @@ export class UpdateSubmissionDto extends PartialType(CreateSubmissionDto) {
         description: 'The ID of the subject for which the file is submitted',
         example: 1,
     })
-    subjectId?: number;
+    subjectId?: string;
 }

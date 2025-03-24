@@ -45,7 +45,7 @@ export class SubmissionService {
                 }
             });
 
-            this.eventEmitter.emit('submission.created', new SubmissionCreatedEvent(submission, subject));
+            this.eventEmitter.emit('submission.created', new SubmissionCreatedEvent({ ...submission, file }, subject));
 
             return submission;
         } catch (error) {

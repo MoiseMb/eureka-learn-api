@@ -45,7 +45,7 @@ export class SubjectService {
                 }
             });
 
-            const eventSubject = await new SubjectCreatedEvent(subject);
+            const eventSubject = await new SubjectCreatedEvent({ ...subject, file });
             this.eventEmitter.emit('subject.created', eventSubject);
 
             return subject;

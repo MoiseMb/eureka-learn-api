@@ -5,7 +5,7 @@ CREATE TYPE "Role" AS ENUM ('PROFESSOR', 'STUDENT', 'ADMIN');
 CREATE TYPE "EvaluationType" AS ENUM ('POO_JAVA', 'C_LANGUAGE', 'SQL', 'PYTHON', 'ALGORITHMS', 'DATA_STRUCTURES');
 
 -- CreateEnum
-CREATE TYPE "SubjectType" AS ENUM ('PDF', 'TEXT', 'MARKDOWN');
+CREATE TYPE "SubjectType" AS ENUM ('PDF', 'TEXT', 'MARKDOWN', 'LATEX');
 
 -- CreateTable
 CREATE TABLE "User" (
@@ -44,7 +44,7 @@ CREATE TABLE "Subject" (
 );
 
 -- CreateTable
-CREATE TABLE "Submission" (
+CREATE TABLE "submission" (
     "id" SERIAL NOT NULL,
     "fileUrl" TEXT NOT NULL,
     "submittedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -54,7 +54,7 @@ CREATE TABLE "Submission" (
     "type" "SubjectType" NOT NULL DEFAULT 'PDF',
     "subjectId" INTEGER NOT NULL,
 
-    CONSTRAINT "Submission_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "submission_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -87,6 +87,9 @@ CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 -- CreateIndex
 CREATE UNIQUE INDEX "Correction_submissionId_key" ON "Correction"("submissionId");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "Classroom_name_key" ON "Classroom"("name");
+
 -- AddForeignKey
 ALTER TABLE "User" ADD CONSTRAINT "User_classroomId_fkey" FOREIGN KEY ("classroomId") REFERENCES "Classroom"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
@@ -97,13 +100,13 @@ ALTER TABLE "Subject" ADD CONSTRAINT "Subject_teacherId_fkey" FOREIGN KEY ("teac
 ALTER TABLE "Subject" ADD CONSTRAINT "Subject_classroomId_fkey" FOREIGN KEY ("classroomId") REFERENCES "Classroom"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Submission" ADD CONSTRAINT "Submission_studentId_fkey" FOREIGN KEY ("studentId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "submission" ADD CONSTRAINT "submission_studentId_fkey" FOREIGN KEY ("studentId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Submission" ADD CONSTRAINT "Submission_subjectId_fkey" FOREIGN KEY ("subjectId") REFERENCES "Subject"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "submission" ADD CONSTRAINT "submission_subjectId_fkey" FOREIGN KEY ("subjectId") REFERENCES "Subject"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Correction" ADD CONSTRAINT "Correction_submissionId_fkey" FOREIGN KEY ("submissionId") REFERENCES "Submission"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Correction" ADD CONSTRAINT "Correction_submissionId_fkey" FOREIGN KEY ("submissionId") REFERENCES "submission"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Classroom" ADD CONSTRAINT "Classroom_teacherId_fkey" FOREIGN KEY ("teacherId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;

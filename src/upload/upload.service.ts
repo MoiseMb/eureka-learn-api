@@ -58,4 +58,24 @@ export class UploadService {
       throw new InternalServerErrorException(`Failed to delete file: ${error.message}`);
     }
   }
+
+  async downloadFile(fileUrl: string): Promise<Buffer> {
+    try {
+      // Extraire le chemin du fichier à partir de l'URL
+      const filePath = fileUrl.split('/').slice(-2).join('/');
+
+      // Télécharger le fichier depuis Supabase
+      const { data, error } = await supabase.storage
+        .from('uploads')
+        .download(filePath);
+
+      if (error) throw error;
+
+      // Convertir le fichier en Buffer
+      const arrayBuffer = await data.arrayBuffer();
+      return Buffer.from(arrayBuffer);
+    } catch (error) {
+      throw new InternalServerErrorException(`Failed to download file: ${error.message}`);
+    }
+  }
 }
