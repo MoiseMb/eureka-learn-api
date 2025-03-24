@@ -7,7 +7,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { UploadService } from 'src/upload/upload.service';
 import * as fs from 'fs';
 import pdfParse from 'pdf-parse';
-import { PDFDocument as PDFLib, StandardFonts } from 'pdf-lib';
+import { PDFDocument, StandardFonts } from 'pdf-lib';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
@@ -57,47 +57,32 @@ export class DeepseekService {
 
             const correctionGuide = await this.generateCorrectionWithOpenRouterForSubjectCreatedEvent(subject, subjectContent);
 
-            const pdfFilename = `correction_${subject.id}.pdf`;
-            const textFilename = `temp_${uuidv4()}.txt`;
+            // Créer le PDF directement en mémoire sans fichier temporaire
+            const pdfDoc = await PDFDocument.create();
+            const pdfBuffer = await this.convertTextToPdfInMemory(correctionGuide, pdfDoc);
 
-            try {
-                fs.writeFileSync(textFilename, correctionGuide, 'utf-8');
-                await this.convertTextToPdf(textFilename, pdfFilename);
+            // Créer un objet file pour l'upload
+            const correctionFile = {
+                buffer: pdfBuffer,
+                originalname: `correction_${subject.title}.pdf`,
+                mimetype: 'application/pdf',
+            };
 
-                // Lire le fichier PDF
-                const pdfBuffer = fs.readFileSync(pdfFilename);
+            // Uploader le fichier
+            const uploadResult = await this.uploadService.uploadFile(
+                correctionFile,
+                'professorCorrectionSubjects'
+            );
 
-                // Créer un objet file pour l'upload
-                const correctionFile = {
-                    buffer: pdfBuffer,
-                    originalname: `correction_${subject.title}.pdf`,
-                    mimetype: 'application/pdf',
-                };
-
-                // Uploader le fichier
-                const uploadResult = await this.uploadService.uploadFile(
-                    correctionFile,
-                    'professorCorrectionSubjects'
-                );
-
-                // Mettre à jour le sujet dans la base de données
-                await this.prisma.subject.update({
-                    where: { id: subject.id },
-                    data: {
-                        correctionFileUrl: uploadResult,
-                        isCorrecting: false,
-                        isCorrected: true,
-                    },
-                });
-            } finally {
-                // Nettoyer les fichiers temporaires
-                if (fs.existsSync(textFilename)) {
-                    fs.unlinkSync(textFilename);
-                }
-                if (fs.existsSync(pdfFilename)) {
-                    fs.unlinkSync(pdfFilename);
-                }
-            }
+            // Mettre à jour le sujet dans la base de données
+            await this.prisma.subject.update({
+                where: { id: subject.id },
+                data: {
+                    correctionFileUrl: uploadResult,
+                    isCorrecting: false,
+                    isCorrected: true,
+                },
+            });
 
             console.log(`✅ AI correction guide generated successfully for subject: ${subject.title}`);
         } catch (error) {
@@ -385,19 +370,16 @@ Detail possible optimizations for performance improvement.
                     So, the response will be in json and will contain three fields, the fisrt is general_comment, the second is specific_feedback, and the third is the grading (in int)`;
     }
 
-    // Fonction pour convertir un fichier texte en PDF
-    private async convertTextToPdf(textFilename: string, pdfFilename: string): Promise<void> {
-        const pdfDoc = await PDFLib.create();
+    // Nouvelle méthode pour convertir le texte en PDF en mémoire
+    private async convertTextToPdfInMemory(textContent: string, pdfDoc: PDFDocument): Promise<Buffer> {
         let page = pdfDoc.addPage();
         let { width, height } = page.getSize();
         const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-        const textContent = fs.readFileSync(textFilename, 'utf-8');
         const lines = textContent.split('\n');
-
         let y = height - 50;
         const margin = 50;
-        const maxWidth = width - 2 * margin; // Largeur disponible
+        const maxWidth = width - 2 * margin;
         const fontSize = 12;
 
         lines.forEach((line) => {
@@ -414,7 +396,7 @@ Detail possible optimizations for performance improvement.
                         y = height - 50;
                     }
                     page.drawText(currentLine.trim(), { x: margin, y, size: fontSize, font });
-                    y -= 15; // Espacement entre lignes
+                    y -= 15;
                     currentLine = word + ' ';
                 } else {
                     currentLine = testLine;
@@ -431,8 +413,7 @@ Detail possible optimizations for performance improvement.
             }
         });
 
-        const pdfBytes = await pdfDoc.save();
-        fs.writeFileSync(pdfFilename, pdfBytes);
+        return Buffer.from(await pdfDoc.save());
     }
 
 
