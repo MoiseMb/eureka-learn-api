@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { SubjectCreatedEvent } from '../subject/events/subject-created.event';
 import { SubmissionCreatedEvent } from 'src/submission/events/submission-created.event';
-import axios from 'axios';
+import OpenAI from 'openai';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UploadService } from 'src/upload/upload.service';
 import * as fs from 'fs';
@@ -12,18 +12,25 @@ import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class DeepseekService {
-    private readonly OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
-    private readonly OPENROUTER_API_KEY = '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';
-    // process.env.OPENROUTER_API_KEY || 
+    private readonly OPENROUTER_API_URL = 'https://openrouter.ai/api/v1';
+    private readonly OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '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';
+
 
     private readonly APP_URL = process.env.NODE_ENV === 'production'
         ? 'https://eureka-learn-api.vercel.app'
         : 'http://localhost:3002';
 
+    private openai: OpenAI;
+
     constructor(
         private prisma: PrismaService,
         private uploadService: UploadService,
-    ) { }
+    ) {
+        this.openai = new OpenAI({
+            apiKey: this.OPENROUTER_API_KEY,
+            baseURL: this.OPENROUTER_API_URL,
+        });
+    }
 
     @OnEvent('subject.created')
     async handleSubjectCreated(event: SubjectCreatedEvent) {
@@ -176,39 +183,21 @@ export class DeepseekService {
 
     private async generateCorrectionWithOpenRouterForSubjectCreatedEvent(subject: any, content: string): Promise<string> {
         try {
-            const payload = {
+            const completion = await this.openai.chat.completions.create({
                 model: 'google/gemini-2.0-flash-001',
                 messages: [
                     {
                         role: 'user',
-                        content: [
-                            {
-                                type: 'text',
-                                text: this.buildSubjectPrompt(subject, content),
-                            },
-                        ],
+                        content: this.buildSubjectPrompt(subject, content),
                     },
                 ],
-            };
-
-            console.log('🔄 Making OpenRouter API request with URL:', this.OPENROUTER_API_URL);
-
-            const openRouterResponse = await axios.post(this.OPENROUTER_API_URL, payload, {
-                headers: {
-                    'Authorization': `Bearer ${this.OPENROUTER_API_KEY}`,
-                    'HTTP-Referer': '',
-                    'X-Title': 'Eureka Learn API',
-                    'Content-Type': 'application/json',
-                },
-                timeout: 240000,
             });
 
-            if (!openRouterResponse.data?.choices?.[0]?.message?.content) {
-                console.error('❌ Invalid OpenRouter API response:', openRouterResponse.data);
+            if (!completion.choices[0]?.message?.content) {
                 throw new Error('Invalid response format from OpenRouter API');
             }
 
-            const resultOfPrompt = openRouterResponse.data.choices[0].message.content.trim();
+            const resultOfPrompt = completion.choices[0].message.content.trim();
             const cleanedResponse = resultOfPrompt
                 .replace(/<think>.*?<\/think>/gs, '')
                 .replace(/\\[()\[\]]/g, '')
@@ -216,42 +205,24 @@ export class DeepseekService {
 
             return cleanedResponse;
         } catch (error) {
-            console.error('❌ OpenRouter API request failed:', {
-                error: error.message,
-                response: error.response?.data,
-                status: error.response?.status,
-            });
+            console.error('❌ OpenRouter API request failed:', error);
             throw new Error(`Failed to generate correction guide with OpenRouter: ${error.message}`);
         }
     }
 
     private async generateCorrectionWithOpenRouterForSubmissionCreatedEvent(correction: any, studentProposition: string): Promise<string> {
         try {
-            const payload = {
+            const completion = await this.openai.chat.completions.create({
                 model: 'google/gemini-2.0-flash-001',
                 messages: [
                     {
                         role: 'user',
-                        content: [
-                            {
-                                type: 'text',
-                                text: this.buildSubmissionPrompt(correction, studentProposition),
-                            },
-                        ],
+                        content: this.buildSubmissionPrompt(correction, studentProposition),
                     },
                 ],
-            };
-
-            const openRouterResponse = await axios.post(this.OPENROUTER_API_URL, payload, {
-                headers: {
-                    Authorization: `Bearer ${this.OPENROUTER_API_KEY}`,
-                    'HTTP-Referer': '',
-                    'X-Title': 'NestJS App',
-                    'Content-Type': 'application/json',
-                },
             });
 
-            const resultOfPrompt = openRouterResponse.data.choices[0].message.content.trim();
+            const resultOfPrompt = completion.choices[0].message.content.trim();
             const cleanedResponse = resultOfPrompt
                 .replace(/<think>.*?<\/think>/gs, '')
                 .replace(/\\[()\[\]]/g, '')
