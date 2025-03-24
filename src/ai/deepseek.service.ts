@@ -6,14 +6,14 @@ import axios from 'axios';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UploadService } from 'src/upload/upload.service';
 import * as fs from 'fs';
-import * as pdf from 'pdf-parse';
+import * as pdfParse from 'pdf-parse';
 import { PDFDocument as PDFLib, StandardFonts } from 'pdf-lib';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class DeepseekService {
     private readonly OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
-    private readonly OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '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';
+    private readonly OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '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';
 
     constructor(
         private prisma: PrismaService,
@@ -133,8 +133,6 @@ export class DeepseekService {
             );
             const jsonString = correction.replace(/json|```/g, '')
             const objetCorrection = JSON.parse(jsonString);
-            console.log("commentaire ", objetCorrection.general_comment);
-            console.log("note ", objetCorrection.grading);
 
 
             await this.prisma.correction.create({
@@ -251,7 +249,10 @@ export class DeepseekService {
 
     private async extractTextFromPdf(fileBuffer: Buffer): Promise<string> {
         try {
-            const data = await pdf(fileBuffer);
+            const data = await pdfParse(fileBuffer);
+            if (!data || !data.text) {
+                throw new Error('Failed to extract text from PDF: Invalid PDF data');
+            }
             return data.text;
         } catch (error) {
             console.error('❌ Failed to extract text from PDF:', error);
