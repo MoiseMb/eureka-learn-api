@@ -13,9 +13,9 @@ import { v4 as uuidv4 } from 'uuid';
 @Injectable()
 export class DeepseekService {
     private readonly OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
-    private readonly OPENROUTER_API_KEY =
-        // process.env.OPENROUTER_API_KEY || 
-        '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';
+    private readonly OPENROUTER_API_KEY = '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';
+    // process.env.OPENROUTER_API_KEY || 
+
     private readonly APP_URL = process.env.NODE_ENV === 'production'
         ? 'https://eureka-learn-api.vercel.app'
         : 'http://localhost:3002';
