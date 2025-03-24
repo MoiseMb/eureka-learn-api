@@ -13,7 +13,7 @@ import { v4 as uuidv4 } from 'uuid';
 @Injectable()
 export class DeepseekService {
     private readonly OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
-    private readonly OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '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';
+    private readonly OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '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';
 
     constructor(
         private prisma: PrismaService,
@@ -172,7 +172,7 @@ export class DeepseekService {
     private async generateCorrectionWithOpenRouterForSubjectCreatedEvent(subject: any, content: string): Promise<string> {
         try {
             const payload = {
-                model: 'google/gemini-2.0-flash-thinking-exp:free',
+                model: 'google/gemini-2.0-flash-001',
                 messages: [
                     {
                         role: 'user',
@@ -211,7 +211,7 @@ export class DeepseekService {
     private async generateCorrectionWithOpenRouterForSubmissionCreatedEvent(correction: any, studentProposition: string): Promise<string> {
         try {
             const payload = {
-                model: 'google/gemini-2.0-flash-thinking-exp:free',
+                model: 'google/gemini-2.0-flash-001',
                 messages: [
                     {
                         role: 'user',
