@@ -1,10 +1,11 @@
-import { Injectable, ForbiddenException } from '@nestjs/common';
+import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { CreateCorrectionDto } from '../dto/create-correction.dto';
 import { ListArgs } from 'src/lib/listArg';
 import { Correction, Role } from '@prisma/client';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { PaginatedResult } from 'src/common/types/pagination.type';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { UpdateCorrectionDto } from '../dto/update-correction.dto';
 
 @Injectable()
 export class CorrectionService {
@@ -116,5 +117,39 @@ export class CorrectionService {
                 lastPage
             }
         };
+    }
+
+    async update(id: number, updateCorrectionDto: UpdateCorrectionDto, professorId: number) {
+        const correction = await this.prisma.correction.findUnique({
+            where: { id },
+            include: {
+                submission: {
+                    include: {
+                        subject: true
+                    }
+                }
+            }
+        });
+
+        if (!correction) {
+            throw new NotFoundException(`Correction with ID ${id} not found`);
+        }
+
+        if (correction.submission.subject.teacherId !== professorId) {
+            throw new ForbiddenException('You can only update corrections for your subjects');
+        }
+
+        return this.prisma.correction.update({
+            where: { id },
+            data: updateCorrectionDto,
+            include: {
+                submission: {
+                    include: {
+                        student: true,
+                        subject: true
+                    }
+                }
+            }
+        });
     }
 }

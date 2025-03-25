@@ -244,6 +244,7 @@ export class SubjectService {
                             select: {
                                 score: true,
                                 notes: true,
+                                id: true,
                                 correctedAt: true
                             }
                         }
